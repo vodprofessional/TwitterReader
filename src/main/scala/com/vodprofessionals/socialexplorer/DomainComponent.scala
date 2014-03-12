@@ -18,7 +18,18 @@ trait DomainComponent { this: ContextAwareRDBMSProfile =>
     def retweets = column[Int]("retweets")
     def favorites = column[Int]("favorites")
     def id = column[Int]("id", O.PrimaryKey, O.AutoInc)
-    def * =  (text, tweeter, term, tweetedAt, retweets, favorites, id) <> (Tweet.tupled, Tweet.unapply)
+    def * = (text, tweeter, term, tweetedAt, retweets, favorites, id) <> (Tweet.tupled, Tweet.unapply)
   }
   val tweets = TableQuery[Tweets]
+
+
+  case class SearchTerm(term: String, ownerId: Int, createdAt: Date, id: Int = 0)
+  class SearchTerms(tag: Tag) extends Table[SearchTerm](tag, "search_term") {
+    def term = column[String]("term", O.NotNull, O.DBType("VARCHAR(150)"))
+    def createdAt = column[Date]("createdAt", O.NotNull)
+    def ownerId = column[Int]("ownerId", O.NotNull)
+    def id = column[Int]("id", O.PrimaryKey, O.AutoInc)
+    def * = (term, ownerId, createdAt, id) <> (SearchTerm.tupled, SearchTerm.unapply)
+  }
+  val searchTerms = TableQuery[SearchTerms]
 }
