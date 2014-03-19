@@ -7,8 +7,12 @@ import hu.lazycat.scala.config.AppConfig
  *
  */
 object Application extends App with Logging {
-  val worker = new Worker
-  worker.start
+  try {
+    val worker = new Worker
+    worker.start
+  } catch {
+    case ex:Exception => logger.error(ex.getMessage, ex)
+  }
 
-  worker.stop
+
 }

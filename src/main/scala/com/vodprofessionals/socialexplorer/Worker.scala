@@ -3,14 +3,15 @@ package com.vodprofessionals.socialexplorer
 import hu.lazycat.scala.slick._
 import scala.slick.driver.JdbcProfile
 import com.typesafe.scalalogging.slf4j.Logging
-import java.sql.Date
-import com.twitter.hbc.core.endpoint.{StatusesFilterEndpoint, StreamingEndpoint}
-import com.google.common.collect.Lists
+import com.twitter.hbc.core.endpoint.StatusesFilterEndpoint
 import java.util.concurrent.{LinkedBlockingQueue, BlockingQueue}
-import com.twitter.hbc.httpclient.auth.{OAuth1, Authentication}
+import com.twitter.hbc.httpclient.auth.OAuth1
 import com.twitter.hbc.core.{Constants, Client}
 import com.twitter.hbc.ClientBuilder
 import com.twitter.hbc.core.processor.StringDelimitedProcessor
+import java.sql.SQLSyntaxErrorException
+import scala.collection.JavaConverters._
+
 
 class Worker(
               override val dbProfile: JdbcProfile = ContextAwareRDBMSDriver.getDriver
@@ -32,34 +33,40 @@ class Worker(
    */
   def start = {
     DB.databaseObject withSession { implicit session: Session =>
+
       try {
         tweets.ddl.create
       } catch {
-        case ex: Exception => logger.error(ex.getMessage)
+        case ddlExists: SQLSyntaxErrorException => {
+          logger.debug("DDL already set up, resuming...")
+        }
+        case ex: Exception => {
+          // Log everything else and terminate because at this point it's probably a connection issue
+          // TODO: Poll for connection to database until established for a more reactive approach
+          logger.error(ex.getMessage, ex)
+        }
       }
 
-      ENDPOINT.trackTerms(Lists.newArrayList("lies"))
+      val terms:List[String] = List("gaga")
+      ENDPOINT.trackTerms(terms.asJava)
       TWITTER.connect
 
-
-    /*
-
-      val today = new java.util.Date()
-      tweets += Tweet(
-        "This is the text message, the tweet for the term",
-        "Tweeter is tolmi",
-        "for the term",
-        new Date(today.getTime)
-      )
-
-      tweets foreach println
-
-    */
+      while(!TWITTER.isDone) {
+        try {
+          tweets += tweets.baseTableRow.parseFromJSON(QUEUE.take)(terms)
+        } catch {
+          case sqlException: java.sql.SQLException => logger.error(sqlException.getMessage, sqlException)
+        }
+      }
 
     }
   }
 
+  /**
+   *
+   *
+   */
   def stop = {
-
+    TWITTER.stop()
   }
 }
