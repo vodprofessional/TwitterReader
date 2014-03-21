@@ -26,7 +26,10 @@ class Worker(
   val ENDPOINT = new StatusesFilterEndpoint
   val TWITTER: Client = (new ClientBuilder).hosts(Constants.STREAM_HOST)
                                             .endpoint(ENDPOINT)
-                                            .authentication(new OAuth1("LX7hoWly7G70JgYJ6PWi3A","MjTllvHJ0OOw7Zsd889Gk5ZR8TIqLbru4e2Pyph5Oo","2210803538-fNk5n6842w8tVQQ0l0xEA6LdrmV2uzmkb4yk5t0","0SK74hSwjOQqkzLrNvCy9mHs3Wh2J8Krm6SVUw2nUSsBz"))
+                                            .authentication(new OAuth1(AppConfig.config.getString("twitter.consumerKey"),
+                                                                       AppConfig.config.getString("twitter.consumerSecret"),
+                                                                       AppConfig.config.getString("twitter.tokenKey"),
+                                                                       AppConfig.config.getString("twitter.tokenSecret")))
                                             .processor(new StringDelimitedProcessor(QUEUE))
                                             .build
 
