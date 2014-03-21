@@ -24,7 +24,7 @@ class Worker(
   val DB = new ContextAwareRDBMSConnection(dbProfile)
   val QUEUE: BlockingQueue[String] = new LinkedBlockingQueue[String](10000)
   val ENDPOINT = new StatusesFilterEndpoint
-  val TWITTER: Client = (new ClientBuilder).hosts(Constants.STREAM_HOST)
+  val twitter: Client = (new ClientBuilder).hosts(Constants.STREAM_HOST)
                                             .endpoint(ENDPOINT)
                                             .authentication(new OAuth1(AppConfig.config.getString("twitter.consumerKey"),
                                                                        AppConfig.config.getString("twitter.consumerSecret"),
@@ -57,9 +57,15 @@ class Worker(
 
       val terms = AppConfig.config.getStringList("terms")
       ENDPOINT.trackTerms(terms)
-      TWITTER.connect
 
-      while(!TWITTER.isDone) {
+      // Register shutdown hook to terminate the Twitter hose
+      sys addShutdownHook {
+        stop
+      }
+
+      twitter.connect
+
+      while(!twitter.isDone) {
         try {
           tweets += tweets.baseTableRow.parseFromJSON(QUEUE.take)(terms.asScala.toList)
         } catch {
@@ -71,10 +77,14 @@ class Worker(
   }
 
   /**
-   *
+   * Shuts down the worker application
    *
    */
   def stop = {
-    TWITTER.stop()
+    logger.info("Shutting down...")
+
+    twitter.stop()
+
+    logger.info("Shutdown complete")
   }
 }
