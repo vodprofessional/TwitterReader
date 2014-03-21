@@ -11,6 +11,8 @@ import com.twitter.hbc.ClientBuilder
 import com.twitter.hbc.core.processor.StringDelimitedProcessor
 import java.sql.SQLSyntaxErrorException
 import scala.collection.JavaConverters._
+import org.postgresql.util.PSQLException
+import hu.lazycat.scala.config.AppConfig
 
 
 class Worker(
@@ -40,6 +42,9 @@ class Worker(
         case ddlExists: SQLSyntaxErrorException => {
           logger.debug("DDL already set up, resuming...")
         }
+        case ddlExists: PSQLException => {
+          logger.debug("DDL already set up, resuming...")
+        }
         case ex: Exception => {
           // Log everything else and terminate because at this point it's probably a connection issue
           // TODO: Poll for connection to database until established for a more reactive approach
@@ -47,13 +52,13 @@ class Worker(
         }
       }
 
-      val terms:List[String] = List("gaga")
-      ENDPOINT.trackTerms(terms.asJava)
+      val terms = AppConfig.config.getStringList("terms")
+      ENDPOINT.trackTerms(terms)
       TWITTER.connect
 
       while(!TWITTER.isDone) {
         try {
-          tweets += tweets.baseTableRow.parseFromJSON(QUEUE.take)(terms)
+          tweets += tweets.baseTableRow.parseFromJSON(QUEUE.take)(terms.asScala.toList)
         } catch {
           case sqlException: java.sql.SQLException => logger.error(sqlException.getMessage, sqlException)
         }
