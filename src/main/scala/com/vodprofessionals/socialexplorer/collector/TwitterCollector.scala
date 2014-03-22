@@ -60,7 +60,6 @@ class TwitterCollector(
       }
 
       val terms = AppConfig.config.getStringList("terms")
-      println(terms.asScala)
       ENDPOINT.trackTerms(terms)
 
       // Register shutdown hook to terminate the Twitter hose
