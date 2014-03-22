@@ -49,7 +49,7 @@ class ContextAwareRDBMSConnection(
     val username = AppConfig.config.getString("db.username")
     val password = AppConfig.config.getString("db.password")
     val driver = AppConfig.config.getString("db.driver")
-    logger.info("Connection info =>" + "Run mode: " + AppConfig.env + ", db url: " + url + ", driver: " + driver)
+    logger.info("Connection info => " + "Run mode: " + AppConfig.env + ", DB url: " + url + ", DB driver: " + driver)
     Database.forURL(url, username, password, null, driver)
   }
 }

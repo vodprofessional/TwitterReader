@@ -12,6 +12,7 @@ import org.json4s.JsonAST.JInt
 trait DomainComponent { this: ContextAwareRDBMSProfile =>
   import dbProfile.simple._
 
+
   case class Tweet(text: String,
                    tweeter: String,
                    term: String,
@@ -31,14 +32,15 @@ trait DomainComponent { this: ContextAwareRDBMSProfile =>
     def id = column[Int]("id", O.PrimaryKey, O.AutoInc)
     def * = (text, tweeter, term, tweetedAt, tweetId, retweets, favorites, id) <> (Tweet.tupled, Tweet.unapply)
     def idx = index("tweetid_idx", (tweetId), unique = true)
-
+  }
+  object Tweets {
     /**
      * Parse a Tweet out of Twitter's stream hose JSON response
      *
      * @param jsonString The raw string containing the JSON object
      * @return Tweet
      */
-    def parseFromJSON(jsonString: String) = { implicit terms:List[String] =>
+    def fromJSON(jsonString: String) = { implicit terms:List[String] =>
       val dateFormat = new java.text.SimpleDateFormat("EEE MMM dd HH:mm:ss Z yyyy", java.util.Locale.US)
       val json = parse(jsonString)
       val text:String = { json \ "text" } match {
@@ -51,18 +53,18 @@ trait DomainComponent { this: ContextAwareRDBMSProfile =>
       Tweet(
         text,
         { json \ "user" \ "screen_name" } match {
-            case JString(s) => s
-            case _ => ""
-          },
+          case JString(s) => s
+          case _ => ""
+        },
         matchingTerms.mkString(","),
         { json \ "created_at" } match {
-            case JString(dateText:String) => new Timestamp(dateFormat.parse(dateText).getTime)
-            case _ => new Timestamp(0L)
-          },
+          case JString(dateText:String) => new Timestamp(dateFormat.parse(dateText).getTime)
+          case _ => new Timestamp(0L)
+        },
         { json \ "id_str" } match {
-            case JString(s) => s
-            case _ => ""
-          },
+          case JString(s) => s
+          case _ => ""
+        },
         { json \ "retweet_count" } match {
           case JInt(i) => i.intValue()
           case _ => 0

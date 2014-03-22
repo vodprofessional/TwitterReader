@@ -1,4 +1,4 @@
-package com.vodprofessionals.socialexplorer
+package com.vodprofessionals.socialexplorer.collector
 
 import hu.lazycat.scala.slick._
 import scala.slick.driver.JdbcProfile
@@ -13,11 +13,15 @@ import java.sql.SQLSyntaxErrorException
 import scala.collection.JavaConverters._
 import org.postgresql.util.PSQLException
 import hu.lazycat.scala.config.AppConfig
+import com.vodprofessionals.socialexplorer.DomainComponent
 
 
-class Worker(
+class TwitterCollector(
               override val dbProfile: JdbcProfile = ContextAwareRDBMSDriver.getDriver
-      ) extends DomainComponent with ContextAwareRDBMSProfile with Logging {
+      ) extends DomainComponent
+        with Collector
+        with ContextAwareRDBMSProfile
+        with Logging {
 
   import dbProfile.simple._
 
@@ -36,7 +40,7 @@ class Worker(
   /**
    *
    */
-  def start = {
+  override def start = {
     DB.databaseObject withSession { implicit session: Session =>
 
       try {
@@ -56,6 +60,7 @@ class Worker(
       }
 
       val terms = AppConfig.config.getStringList("terms")
+      println(terms.asScala)
       ENDPOINT.trackTerms(terms)
 
       // Register shutdown hook to terminate the Twitter hose
@@ -67,9 +72,20 @@ class Worker(
 
       while(!twitter.isDone) {
         try {
-          tweets += tweets.baseTableRow.parseFromJSON(QUEUE.take)(terms.asScala.toList)
-        } catch {
-          case sqlException: java.sql.SQLException => logger.error(sqlException.getMessage, sqlException)
+          val t = Tweets.fromJSON(QUEUE.take)(terms.asScala.toList);
+          if (t.term.length > 0) {
+            tweets += t
+          }
+        }
+        catch {
+          case sqlException: java.sql.SQLException => Integer.parseInt(sqlException.getSQLState, 16) match {
+            case code if 0x23000 until 0x23FFF contains code  => {
+                              /* This is an integrity violation exception, just ignore it,
+                                 most likely duplicate key
+                                 http://www.pitt.edu/~hoffman/oradoc/server.804/a58231/appd.htm */
+                            }
+            case code => logger.error(code + " " + sqlException.getMessage, sqlException)
+          }
         }
       }
 
@@ -80,7 +96,7 @@ class Worker(
    * Shuts down the worker application
    *
    */
-  def stop = {
+  override def stop = {
     logger.info("Shutting down...")
 
     twitter.stop()
