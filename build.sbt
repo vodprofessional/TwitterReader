@@ -8,8 +8,6 @@ version := "0.0.1"
 
 scalaVersion := "2.10.3"
 
-resolvers += "twitter-repo" at "http://maven.twttr.com"
-
 libraryDependencies ++= Seq(
   "org.json4s"                %% "json4s-jackson"          % "3.2.7",
   "org.apache.httpcomponents" %  "httpclient"              % "4.2.5",
