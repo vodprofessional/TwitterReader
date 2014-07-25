@@ -1,8 +1,10 @@
 package com.vodprofessionals.socialexplorer.collector
 
+import com.typesafe.scalalogging.LazyLogging
+import hu.lazycat.scala.config.Configurable
+import hu.lazycat.scala.immutable.Int
 import hu.lazycat.scala.slick._
 import scala.slick.driver.JdbcProfile
-import com.typesafe.scalalogging.slf4j.Logging
 import com.twitter.hbc.core.endpoint.StatusesFilterEndpoint
 import java.util.concurrent.{LinkedBlockingQueue, BlockingQueue}
 import com.twitter.hbc.httpclient.auth.OAuth1
@@ -12,16 +14,16 @@ import com.twitter.hbc.core.processor.StringDelimitedProcessor
 import java.sql.SQLSyntaxErrorException
 import scala.collection.JavaConverters._
 import org.postgresql.util.PSQLException
-import hu.lazycat.scala.config.AppConfig
 import com.vodprofessionals.socialexplorer.DomainComponent
 
 
 class TwitterCollector(
-              override val dbProfile: JdbcProfile = ContextAwareRDBMSDriver.getDriver
+              override val dbProfile: JdbcProfile = ContextAwareRDBMSDriver.driver
       ) extends DomainComponent
         with Collector
         with ContextAwareRDBMSProfile
-        with Logging {
+        with LazyLogging
+        with Configurable {
 
   import dbProfile.simple._
 
@@ -29,13 +31,13 @@ class TwitterCollector(
   val QUEUE: BlockingQueue[String] = new LinkedBlockingQueue[String](10000)
   val ENDPOINT = new StatusesFilterEndpoint
   val twitter: Client = (new ClientBuilder).hosts(Constants.STREAM_HOST)
-                                            .endpoint(ENDPOINT)
-                                            .authentication(new OAuth1(AppConfig.config.getString("twitter.consumerKey"),
-                                                                       AppConfig.config.getString("twitter.consumerSecret"),
-                                                                       AppConfig.config.getString("twitter.tokenKey"),
-                                                                       AppConfig.config.getString("twitter.tokenSecret")))
-                                            .processor(new StringDelimitedProcessor(QUEUE))
-                                            .build
+                                           .endpoint(ENDPOINT)
+                                           .authentication(new OAuth1(CONFIG.getString("twitter.consumer.key"),
+                                                                      CONFIG.getString("twitter.consumer.secret"),
+                                                                      CONFIG.getString("twitter.token.key"),
+                                                                      CONFIG.getString("twitter.token.secret")))
+                                           .processor(new StringDelimitedProcessor(QUEUE))
+                                           .build
 
   /**
    *
@@ -59,7 +61,7 @@ class TwitterCollector(
         }
       }
 
-      val terms = AppConfig.config.getStringList("terms")
+      val terms = CONFIG.getStringList("temp.terms")
       ENDPOINT.trackTerms(terms)
 
       // Register shutdown hook to terminate the Twitter hose
@@ -69,7 +71,7 @@ class TwitterCollector(
 
       twitter.connect
 
-      while(!twitter.isDone) {
+      while (!twitter.isDone) {
         try {
           val t = Tweets.fromJSON(QUEUE.take)(terms.asScala.toList);
           if (t.term.length > 0) {
@@ -77,17 +79,22 @@ class TwitterCollector(
           }
         }
         catch {
-          case sqlException: java.sql.SQLException => Integer.parseInt(sqlException.getSQLState, 16) match {
-            case code if 0x23000 until 0x23FFF contains code  => {
-                              /* This is an integrity violation exception, just ignore it,
-                                 most likely duplicate key
-                                 http://www.pitt.edu/~hoffman/oradoc/server.804/a58231/appd.htm */
-                            }
-            case code => logger.error(code + " " + sqlException.getMessage, sqlException)
-          }
+          case sqlException: java.sql.SQLException =>
+            sqlException.getSQLState match {
+              case Int(sqlStateCode) => sqlStateCode match {
+                case code if 0x23000 until 0x23FFF contains code => {
+                  /* This is an integrity violation exception, just ignore it,
+                     most likely duplicate key
+                     http://www.pitt.edu/~hoffman/oradoc/server.804/a58231/appd.htm */
+                }
+                case _ => logger.error("Database Error: " + sqlException.getMessage)
+              }
+              case _ => logger.error("Database Error: " + sqlException.getMessage)
+            }
+          case exception: Exception =>
+            logger.error(exception.getMessage, exception)
         }
       }
-
     }
   }
 

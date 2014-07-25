@@ -1,8 +1,9 @@
 package hu.lazycat.scala.slick
 
+import com.typesafe.scalalogging.LazyLogging
+
 import scala.slick.driver._
-import hu.lazycat.scala.config.AppConfig
-import com.typesafe.scalalogging.slf4j.Logging
+import hu.lazycat.scala.config.Configurable
 
 /**
  *
@@ -14,13 +15,13 @@ trait ContextAwareRDBMSProfile {
 /**
  *
  */
-object ContextAwareRDBMSDriver {
+object ContextAwareRDBMSDriver extends Configurable {
 
   /**
-   *
+   * Provides the Slick driver for queries and operations
    */
-  def getDriver = {
-    AppConfig.config.getString("db.driver") match {
+  val driver = {
+    CONFIG.getString("database.driver") match {
       case "com.mysql.jdbc.Driver"  => MySQLDriver
       case "org.h2.Driver"          => H2Driver
       case "org.postgresql.Driver"  => PostgresDriver
@@ -35,7 +36,7 @@ object ContextAwareRDBMSDriver {
  */
 class ContextAwareRDBMSConnection(
                   override val dbProfile: JdbcProfile
-         ) extends ContextAwareRDBMSProfile with Logging {
+         ) extends ContextAwareRDBMSProfile with LazyLogging with Configurable {
 
   import dbProfile.simple._
 
@@ -45,11 +46,11 @@ class ContextAwareRDBMSConnection(
    * @return Database The instance
    */
   def databaseObject: Database = {
-    val url = AppConfig.config.getString("db.url")
-    val username = AppConfig.config.getString("db.username")
-    val password = AppConfig.config.getString("db.password")
-    val driver = AppConfig.config.getString("db.driver")
-    logger.info("Connection info => " + "Run mode: " + AppConfig.env + ", DB url: " + url + ", DB driver: " + driver)
+    val url = CONFIG.getString("database.url")
+    val username = CONFIG.getString("database.username")
+    val password = CONFIG.getString("database.password")
+    val driver = CONFIG.getString("database.driver")
+
     Database.forURL(url, username, password, null, driver)
   }
 }

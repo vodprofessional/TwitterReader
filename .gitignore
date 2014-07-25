@@ -225,3 +225,4 @@ pip-log.txt
 #############
 **/target/
 *.sc
+developer.conf

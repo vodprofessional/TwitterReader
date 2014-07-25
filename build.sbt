@@ -1,25 +1,35 @@
-import com.typesafe.sbt.SbtNativePackager.packageArchetype
+import com.typesafe.sbt.SbtNativePackager._
+import NativePackagerKeys._
 
-packageArchetype.java_application
+packageArchetype.java_server
+
+maintainer in Linux := "Mark Tolmacs <tolmi@lazycat.hu>"
+
+packageSummary in Linux := "A proprietary social network collector and processor built for Vodprofessionals.com"
+
+packageDescription := "Social Explorer is a proprietary software server written in Scala and Java with one goal. To collect and filter messages from social networks and process them into analytics which are displayed on the web."
+
+bashScriptExtraDefines += """addJava "-Dconfig.file=${app_home}/../conf/application.conf""""
+
+batScriptExtraDefines += """set _JAVA_OPTS=%_JAVA_OPTS% -Dconfig.file=%SOCIALEXPLORER_HOME%\\conf\\application.conf"""
 
 name := "socialexplorer"
 
-version := "0.0.1"
+version := "0.0.2"
 
-scalaVersion := "2.10.3"
+scalaVersion := "2.11.2"
+
+resolvers += "Typesafe Maven Releases" at "http://repo.typesafe.com/typesafe/maven-releases"
 
 libraryDependencies ++= Seq(
-  "org.json4s"                %% "json4s-jackson"          % "3.2.7",
-  "org.apache.httpcomponents" %  "httpclient"              % "4.2.5",
-  "com.google.guava"          %  "guava"                   % "13.0.1",
-  "org.slf4j"                 %  "slf4j-api"               % "1.6.6",
-  "com.twitter"               %  "joauth"                  % "6.0.2",
-  "com.google.code.findbugs"  %  "jsr305"                  % "1.3.9",
-  "com.typesafe"              %  "scalalogging-slf4j_2.10" % "1.1.0",
-  "com.typesafe"              %  "config"                  % "1.2.0",
-  "com.typesafe.slick"        %% "slick"                   % "2.0.0",
-  "org.postgresql"            %  "postgresql"              % "9.3-1100-jdbc4",
-  "com.h2database"            %  "h2"                      % "1.3.175",
-  "mysql"                     %  "mysql-connector-java"    % "5.1.29",
-  "ch.qos.logback"            %  "logback-classic"         % "1.1.1"
+  "org.json4s"                 %% "json4s-jackson"          % "3.2.10",
+  "com.twitter"                %  "hbc-core"                % "2.2.0",
+  "com.typesafe"               %  "config"                  % "1.2.1",
+  "com.typesafe.scala-logging" %% "scala-logging"           % "3.0.0",
+  "org.slf4j"                  %  "slf4j-jdk14"             % "1.7.7",
+  "com.typesafe.slick"         %% "slick"                   % "2.1.0-RC2",
+  "org.postgresql"             %  "postgresql"              % "9.3-1102-jdbc4",
+  "mysql"                      %  "mysql-connector-java"    % "5.1.31",
+  "com.h2database"             %  "h2"                      % "1.3.148" % Test
 )
+
