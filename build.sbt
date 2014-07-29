@@ -24,6 +24,7 @@ resolvers += "Typesafe Maven Releases" at "http://repo.typesafe.com/typesafe/mav
 libraryDependencies ++= Seq(
   "org.json4s"                 %% "json4s-jackson"          % "3.2.10",
   "com.twitter"                %  "hbc-core"                % "2.2.0",
+  "com.typesafe.akka"          %% "akka-actor"              % "2.3.4",
   "com.typesafe"               %  "config"                  % "1.2.1",
   "com.typesafe.scala-logging" %% "scala-logging"           % "3.0.0",
   "org.slf4j"                  %  "slf4j-jdk14"             % "1.7.7",
