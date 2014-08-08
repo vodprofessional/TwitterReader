@@ -26,6 +26,9 @@ resolvers += "Typesafe Maven Releases" at "http://repo.typesafe.com/typesafe/mav
 resolvers += "Scaladin Snapshots" at "http://henrikerola.github.io/repository/snapshots/"
 
 libraryDependencies ++= Seq(
+  "hu.lazycat"                 %% "lazycat-scala-utils"     % "1.0",
+  "com.rabbitmq"               %  "amqp-client"             % "3.3.4",
+  "com.github.sstone"          %% "amqp-client"             % "1.4",
   "com.vaadin"                 %  "vaadin-server"           % "7.2.5",
   "com.vaadin"                 %  "vaadin-themes"           % "7.2.5", //% "container",
   "com.vaadin"                 %  "vaadin-client-compiled"  % "7.2.5",

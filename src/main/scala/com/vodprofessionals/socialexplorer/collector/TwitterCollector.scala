@@ -19,8 +19,8 @@ import com.vodprofessionals.socialexplorer.DomainComponent
 
 class TwitterCollector(
               override val dbProfile: JdbcProfile = ContextAwareRDBMSDriver.driver
-      ) extends DomainComponent
-        with Collector
+      ) extends Collector
+        with DomainComponent
         with ContextAwareRDBMSProfile
         with LazyLogging
         with Configurable {

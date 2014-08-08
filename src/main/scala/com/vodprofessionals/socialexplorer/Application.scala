@@ -11,7 +11,7 @@ import org.eclipse.jetty.servlet.{ServletHolder, ServletContextHandler}
 /**
  *
  */
-object Application extends App with LazyLogging with Configurable {
+object Application extends App with LazyLogging {
 
   try {
     val server:Server = new Server(8080);
