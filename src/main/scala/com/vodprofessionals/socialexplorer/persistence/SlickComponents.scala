@@ -2,17 +2,23 @@ package com.vodprofessionals.socialexplorer.persistence
 
 import java.sql.Timestamp
 
-import com.vodprofessionals.socialexplorer.domain.Tweet
+import com.vodprofessionals.socialexplorer.domain.{SearchTerm, Tweet, System}
 import hu.lazycat.scala.slick.ContextAwareRDBMSProfile
-import org.json4s.JString
-import org.json4s.JsonAST.JInt
-import org.json4s.jackson.JsonMethods._
+
 
 /**
  *
  */
 trait SlickComponents { this: ContextAwareRDBMSProfile =>
   import dbProfile.simple._
+
+  class SystemVariables(tag: Tag) extends Table[System](tag, "system") {
+    def key = column[String]("text", O.NotNull, O.DBType("VARCHAR(150)"))
+    def value = column[String]("text", O.NotNull, O.DBType("VARCHAR(150)"))
+    def * = (key, value) <> (System.tupled, System.unapply)
+    def idx = index("key_idx", (key), unique = true)
+  }
+  val SYSTEM = TableQuery[SystemVariables]
 
   class Tweets(tag: Tag) extends Table[Tweet](tag, "tweet") {
     def text = column[String]("text", O.NotNull, O.DBType("VARCHAR(150)"))
@@ -26,54 +32,9 @@ trait SlickComponents { this: ContextAwareRDBMSProfile =>
     def * = (text, tweeter, term, tweetedAt, tweetId, retweets, favorites, id) <> (Tweet.tupled, Tweet.unapply)
     def idx = index("tweetid_idx", (tweetId), unique = true)
   }
-
-  object Tweets {
-    /**
-     * Parse a Tweet out of Twitter's stream hose JSON response
-     *
-     * @param jsonString The raw string containing the JSON object
-     * @return Tweet
-     */
-    def fromJSON(jsonString: String) = { implicit terms:List[String] =>
-      val dateFormat = new java.text.SimpleDateFormat("EEE MMM dd HH:mm:ss Z yyyy", java.util.Locale.US)
-      val json = parse(jsonString)
-      val text:String = { json \ "text" } match {
-        case JString(s) => s
-        case _ => ""
-      }
-      val termRegex = {"(?i)("+terms.mkString("|")+")"}.r
-      val matchingTerms = (for(m <- termRegex.findAllIn(text)) yield m.toLowerCase).toSet
-
-      Tweet(
-        text,
-        { json \ "user" \ "screen_name" } match {
-          case JString(s) => s
-          case _ => ""
-        },
-        matchingTerms.mkString(","),
-        { json \ "created_at" } match {
-          case JString(dateText:String) => new Timestamp(dateFormat.parse(dateText).getTime)
-          case _ => new Timestamp(0L)
-        },
-        { json \ "id_str" } match {
-          case JString(s) => s
-          case _ => ""
-        },
-        { json \ "retweet_count" } match {
-          case JInt(i) => i.intValue()
-          case _ => 0
-        },
-        { json \ "favorite_count" } match {
-          case JInt(i) => i.intValue()
-          case _ => 0
-        }
-      )
-    }
-  }
-  val tweets = TableQuery[Tweets]
+  val TWEETS = TableQuery[Tweets]
 
 
-  case class SearchTerm(term: String, ownerId: Int, createdAt: Timestamp, id: Int = 0)
   class SearchTerms(tag: Tag) extends Table[SearchTerm](tag, "search_term") {
     def term = column[String]("term", O.NotNull, O.DBType("VARCHAR(150)"))
     def createdAt = column[Timestamp]("createdAt", O.NotNull)
@@ -81,5 +42,5 @@ trait SlickComponents { this: ContextAwareRDBMSProfile =>
     def id = column[Int]("id", O.PrimaryKey, O.AutoInc)
     def * = (term, ownerId, createdAt, id) <> (SearchTerm.tupled, SearchTerm.unapply)
   }
-  val searchTerms = TableQuery[SearchTerms]
+  val SEARCH_TERMS = TableQuery[SearchTerms]
 }

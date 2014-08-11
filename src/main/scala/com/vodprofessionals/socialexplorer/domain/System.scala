@@ -1,8 +1,10 @@
 package com.vodprofessionals.socialexplorer.domain
 
+case class System(key: String, value: String)
+
 /**
- * Created by Mark on 2014.08.11..
+ *
  */
-class System {
+object SystemVariables {
 
 }

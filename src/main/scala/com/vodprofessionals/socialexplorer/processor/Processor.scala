@@ -1,8 +1,22 @@
 package com.vodprofessionals.socialexplorer.processor
 
 /**
- * Created by Mark on 2014.08.11..
+ *
  */
-class Processor {
+abstract class Processor {
+  /**
+   *
+   */
+  def start(): Unit = {}
 
+  /**
+   *
+   * @param message
+   */
+  def process(message: String): Unit
+
+  /**
+   *
+   */
+  def stop(): Unit = {}
 }
