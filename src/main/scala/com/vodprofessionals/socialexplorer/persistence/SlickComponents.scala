@@ -1,26 +1,19 @@
-package com.vodprofessionals.socialexplorer
+package com.vodprofessionals.socialexplorer.persistence
 
 import java.sql.Timestamp
-import org.json4s.jackson.JsonMethods._
-import org.json4s.JString
+
+import com.vodprofessionals.socialexplorer.domain.Tweet
 import hu.lazycat.scala.slick.ContextAwareRDBMSProfile
+import org.json4s.JString
 import org.json4s.JsonAST.JInt
+import org.json4s.jackson.JsonMethods._
 
 /**
  *
  */
-trait DomainComponent { this: ContextAwareRDBMSProfile =>
+trait SlickComponents { this: ContextAwareRDBMSProfile =>
   import dbProfile.simple._
 
-
-  case class Tweet(text: String,
-                   tweeter: String,
-                   term: String,
-                   tweetedAt: Timestamp,
-                   tweetId: String,
-                   retweets: Int = 0,
-                   favorites: Int = 0,
-                   id: Int = 0)
   class Tweets(tag: Tag) extends Table[Tweet](tag, "tweet") {
     def text = column[String]("text", O.NotNull, O.DBType("VARCHAR(150)"))
     def tweeter = column[String]("tweeter", O.NotNull, O.DBType("VARCHAR(50)"))
@@ -33,6 +26,7 @@ trait DomainComponent { this: ContextAwareRDBMSProfile =>
     def * = (text, tweeter, term, tweetedAt, tweetId, retweets, favorites, id) <> (Tweet.tupled, Tweet.unapply)
     def idx = index("tweetid_idx", (tweetId), unique = true)
   }
+
   object Tweets {
     /**
      * Parse a Tweet out of Twitter's stream hose JSON response
