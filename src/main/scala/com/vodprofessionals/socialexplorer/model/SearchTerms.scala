@@ -20,7 +20,7 @@ object SearchTerms extends Configurable {
    * @param term
    */
   def addTerm(term: String) = {
-    terms += term
+    term :: terms
     for {callback <- termsChangeCallbacks} yield callback(terms)
   }
 
@@ -60,6 +60,6 @@ object SearchTerms extends Configurable {
    * @param callback
    */
   def addCallback(callback: List[String] => Unit) = {
-    termsChangeCallbacks :: callback
+    callback :: termsChangeCallbacks
   }
 }

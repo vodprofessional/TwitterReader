@@ -1,92 +1,81 @@
 package com.vodprofessionals.socialexplorer
 
-import akka.actor.ActorRef
+import akka.actor.{ActorSystem, Props}
+import akka.routing.RoundRobinGroup
 import com.typesafe.scalalogging.LazyLogging
+import com.vodprofessionals.socialexplorer.actors.{TwitterProcessorActor, TwitterCollectorActor}
+import com.vodprofessionals.socialexplorer.collector.CollectorMessages.StartTwitterCollector
+import com.vodprofessionals.socialexplorer.domain.{Tweet, RawTweet}
+import com.vodprofessionals.socialexplorer.persistence.{SlickComponents, AddTwitterMessage, SlickTwitterStore}
 import com.vodprofessionals.socialexplorer.processor.TwitterProcessor
+import com.vodprofessionals.socialexplorer.web.{StartVaadinService, VaadinService}
 import hu.lazycat.scala.config.Configurable
 import com.vodprofessionals.socialexplorer.collector.TwitterCollector
-import org.eclipse.jetty.server.Server
-import org.eclipse.jetty.websocket.jsr356.server.deploy.WebSocketServerContainerInitializer;
-import javax.websocket.server.ServerContainer;
-import org.eclipse.jetty.servlet.{ServletHolder, ServletContextHandler}
+import hu.lazycat.scala.slick.{ContextAwareRDBMSProfile, ContextAwareRDBMSDriver}
+
+import scala.slick.driver.JdbcProfile
+
 
 /**
  *
  */
-object Application extends LazyLogging {
-  var workers: Map[String, Thread] = Map.empty
+object Application extends App with LazyLogging with Configurable {
 
-  def main(args: Array[String]) = {
-    if (args.length > 0) {
-      // Looks like we are a web node
-      try {
-        val webServerThread = new Thread(new Runnable() {
-          def run(): Unit = {
-            startWebServer(Integer.valueOf(args(0)))
-          }
-        })
-        webServerThread.setPriority(100)
-        workers += "web" -> webServerThread
-      } catch {
-        case ex: Exception => logger.error(ex.getMessage, ex)
+  try {
+
+    val processorCores = Runtime.getRuntime().availableProcessors()
+    val nrOfWorkers    = if (processorCores > 1) processorCores * 2 - 1 else 1
+    val actorSystem    = ActorSystem("socialStreamNodeSystem")
+
+
+    if (args.length > 0)
+      actorSystem.actorOf(Props[VaadinService]) ! StartVaadinService  // Looks like we are a web node
+
+    // Attempt to create the Slick RDBMS twitter store
+    val slickStoreActor = actorSystem.actorOf(Props(new SlickTwitterStore()))
+
+    // Attempt to boot up the Twitter processor actors
+    val actorPaths = for (i <- 1 to nrOfWorkers)
+      yield actorSystem.actorOf(Props(new TwitterProcessorActor(new TwitterProcessor(
+        (tweet: Tweet) => slickStoreActor ! AddTwitterMessage(tweet)
+      )))).path.toString
+
+    val twitterProcessorActors = actorSystem.actorOf(RoundRobinGroup(actorPaths).props(), "twitterProcessorPool")
+
+
+    // Let's load the search terms from the DB
+    class DAL(val dbProfile: JdbcProfile) extends SlickComponents with ContextAwareRDBMSProfile {
+      import dbProfile.simple._
+
+      DB withSession { implicit session: Session =>
+        createTables(session)
       }
-    }
 
-    try {
-      // Attempt to start a Twitter message processor
-      val twitterProcessorThread = new Thread(new Runnable() {
-        def run(): Unit = {
-          val twitterProcessor = new TwitterProcessor
-          twitterProcessor.start
+      def getSearchTerms(): List[String] =
+        DB withSession { implicit session: Session =>
+          val searchTerms = TableQuery[SearchTerms]
+          (for(t <- searchTerms) yield t.term).run
+            .toList
         }
-      })
-      twitterProcessorThread.setPriority(50)
-      workers += "twitter-processor" -> twitterProcessorThread
-    } catch {
-      case ex:Exception => logger.error(ex.getMessage, ex)
     }
+    val terms = (new DAL(ContextAwareRDBMSDriver.driver)).getSearchTerms
 
-    try {
-      // Attempt to start Twitter Firehose reader worker
-      val twitterFirehoseThread = new Thread(new Runnable() {
-        def run(): Unit = {
-          val twitterCollector = new TwitterCollector
-          twitterCollector.start
-        }
+
+    // Attempt to start a Twitter collector actor
+    val twitterCollector = new TwitterCollector(
+      CONFIG.getString("twitter.consumer.key"),
+      CONFIG.getString("twitter.consumer.secret"),
+      CONFIG.getString("twitter.token.key"),
+      CONFIG.getString("twitter.token.secret"),
+      (rawTweet: RawTweet) => {
+        twitterProcessorActors ! rawTweet; true
       })
-      twitterFirehoseThread.setPriority(0)
-      workers += "twitter-reader" -> twitterFirehoseThread
-    } catch {
-      case ex: Exception => logger.error(ex.getMessage, ex)
-    }
-  }
+    if(!terms.isEmpty)
+      actorSystem.actorOf(Props(new TwitterCollectorActor(twitterCollector))) ! StartTwitterCollector( terms )
+    else
+      logger.error("No search terms defined so not starting collector")
 
-
-
-  /**
-   *
-   * @param port
-   */
-  def startWebServer(port: Int) = {
-    val context: ServletContextHandler  = new ServletContextHandler(ServletContextHandler.SESSIONS);
-    context.setContextPath("/");
-    context.setResourceBase(
-      this.getClass().getClassLoader().getResource("webapp/").toExternalForm()
-    );
-
-    val container: ServerContainer = WebSocketServerContainerInitializer.configureContext( context );
-    val servletHolder              = new ServletHolder(new com.vaadin.server.VaadinServlet());
-    servletHolder.setInitParameter("pushmode", "automatic");
-    servletHolder.setInitParameter("productionMode", "false");
-    servletHolder.setInitParameter("UI",        "com.vodprofessionals.socialexplorer.web.DashboardUI");
-    servletHolder.setInitParameter("widgetset", "com.vodprofessionals.socialexplorer.web.DashboardUI");
-    servletHolder.setInitParameter("org.atmosphere.cpr.asyncSupport", "org.atmosphere.container.JSR356AsyncSupport");
-    servletHolder.setAsyncSupported(true);
-    context.addServlet(servletHolder, "/*");
-
-    val server: Server = new Server(port);
-    server.setHandler(context);
-    server.start();
-    server.join();
+  } catch {
+    case ex: Throwable => logger.error(ex.getMessage, ex)
   }
 }

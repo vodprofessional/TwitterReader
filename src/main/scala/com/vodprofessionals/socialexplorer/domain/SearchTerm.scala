@@ -2,9 +2,16 @@ package com.vodprofessionals.socialexplorer.domain
 
 import java.util.Date
 
-case class SearchTerm(term: String,
-                      ownerId: Int,
+case class SearchTerm(id: Option[Long],
+                      term: String,
                       createdAt: Date,
-                      id: Int = 0)
+                      ownerId: Int)
 
-case class AddSearchTerm
+case class AddSearchTerm(terms: List[String])
+
+/**
+ *
+ */
+object SearchTerms {
+
+}

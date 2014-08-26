@@ -40,7 +40,7 @@ libraryDependencies ++= Seq(
   "com.typesafe"               %  "config"                  % "1.2.1",
   "com.typesafe.scala-logging" %% "scala-logging"           % "3.0.0",
   "org.slf4j"                  %  "slf4j-jdk14"             % "1.7.7",
-  "com.typesafe.slick"         %% "slick"                   % "2.1.0-RC2",
+  "com.typesafe.slick"         %% "slick"                   % "2.1.0-RC3",
   "org.postgresql"             %  "postgresql"              % "9.3-1102-jdbc4",
   "mysql"                      %  "mysql-connector-java"    % "5.1.31",
   "com.h2database"             %  "h2"                      % "1.3.148" % Test,

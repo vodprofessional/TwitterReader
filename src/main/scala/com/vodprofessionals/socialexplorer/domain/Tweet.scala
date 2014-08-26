@@ -6,33 +6,33 @@ import org.json4s.JString
 import org.json4s.JsonAST.JInt
 import org.json4s.jackson.JsonMethods._
 
-case class Tweet(text: String,
+case class Tweet(id: Option[Long],
+                 text: String,
                  tweeter: String,
                  term: String,
                  tweetedAt: Date,
                  tweetId: String,
                  retweets: Int = 0,
-                 favorites: Int = 0,
-                 id: Int = 0)
+                 favorites: Int = 0)
 
-case class RawTweet(message: String)
+object Tweet {
 
-object Tweets {
   /**
    * Parse a Tweet out of Twitter's stream hose JSON response
    *
    * @param jsonString The raw string containing the JSON object
    * @return Tweet
    */
-  def fromJSON(jsonString: String, matchingTerms: Set[String]) = {
+  def apply(jsonString: String, matchingTerms: Set[String]): Tweet = {
     val dateFormat = new java.text.SimpleDateFormat("EEE MMM dd HH:mm:ss Z yyyy", java.util.Locale.US)
     val json = parse(jsonString)
-    val text:String = { json \ "text" } match {
+    val text: String = { json \ "text" } match {
       case JString(s) => s
       case _ => ""
     }
 
     Tweet(
+      None,
       text,
       { json \ "user" \ "screen_name" } match {
         case JString(s) => s
@@ -58,3 +58,5 @@ object Tweets {
     )
   }
 }
+
+case class RawTweet(jsonMessage: String)
