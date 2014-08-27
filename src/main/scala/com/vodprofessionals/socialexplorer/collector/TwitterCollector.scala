@@ -1,11 +1,10 @@
 package com.vodprofessionals.socialexplorer.collector
 
 import com.typesafe.scalalogging.LazyLogging
-import com.vodprofessionals.socialexplorer.domain.RawTweet
 import hu.lazycat.scala.config.Configurable
 import com.twitter.hbc.core.endpoint.StatusesFilterEndpoint
 import com.twitter.hbc.httpclient.auth.OAuth1
-import com.twitter.hbc.core.{Constants, Client}
+import com.twitter.hbc.core.Constants
 import com.twitter.hbc.ClientBuilder
 import com.twitter.hbc.core.processor.StringDelimitedProcessor
 import scala.collection.JavaConverters._
@@ -20,7 +19,7 @@ class TwitterCollector (
       val consumerSecret: String,
       val tokenKey:       String,
       val tokenSecret:    String,
-      val processor:      RawTweet => Boolean
+      val processor:      String => Boolean
                        ) extends LazyLogging with Configurable {
 
   val endpoint = new StatusesFilterEndpoint
@@ -32,9 +31,7 @@ class TwitterCollector (
 
       override def process: Boolean =
         processor(
-          RawTweet(
-            Stream.cons(processNextMessage, Stream.continually(processNextMessage)).dropWhile(_ == null).head
-          )
+          Stream.cons(processNextMessage, Stream.continually(processNextMessage)).dropWhile(_ == null).head
         )
 
     })

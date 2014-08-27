@@ -58,5 +58,3 @@ object Tweet {
     )
   }
 }
-
-case class RawTweet(jsonMessage: String)

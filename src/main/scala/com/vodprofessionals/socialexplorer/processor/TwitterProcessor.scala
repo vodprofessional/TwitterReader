@@ -1,7 +1,7 @@
 package com.vodprofessionals.socialexplorer.processor
 
 import com.typesafe.scalalogging.LazyLogging
-import com.vodprofessionals.socialexplorer.domain.{Tweet, RawTweet}
+import com.vodprofessionals.socialexplorer.domain.Tweet
 import com.vodprofessionals.socialexplorer.model.SearchTerms
 
 
@@ -16,8 +16,8 @@ class TwitterProcessor(
   /*
    *
    */
-  def process(rawTweet: RawTweet) = rawTweet match {
-    case RawTweet(jsonMessage: String) =>
+  def process(rawTweet: String) = rawTweet match {
+    case jsonMessage: String =>
       val tweet = Tweet(jsonMessage, SearchTerms.matchTerms(jsonMessage))
 
       // Any processing of the Tweet data comes here...

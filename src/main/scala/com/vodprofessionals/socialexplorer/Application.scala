@@ -6,7 +6,7 @@ import com.typesafe.scalalogging.LazyLogging
 import com.vodprofessionals.socialexplorer.akka.RDBMSTwitterStoreMessages.AddTwitterMessage
 import com.vodprofessionals.socialexplorer.akka.TwitterCollectorMessages.StartTwitterCollector
 import com.vodprofessionals.socialexplorer.akka._
-import com.vodprofessionals.socialexplorer.domain.{Tweet, RawTweet}
+import com.vodprofessionals.socialexplorer.domain.Tweet
 import com.vodprofessionals.socialexplorer.persistence.{SlickComponents, SlickTwitterStore}
 import com.vodprofessionals.socialexplorer.processor.TwitterProcessor
 import com.vodprofessionals.socialexplorer.web.{StartVaadinService, VaadinService}
@@ -50,7 +50,7 @@ object Application extends App with LazyLogging with Configurable {
       CONFIG.getString("twitter.consumer.secret"),
       CONFIG.getString("twitter.token.key"),
       CONFIG.getString("twitter.token.secret"),
-      (rawTweet: RawTweet) => {
+      (rawTweet: String) => {
         twitterProcessor.process(rawTweet)
         true
       }
@@ -115,7 +115,7 @@ object Application extends App with LazyLogging with Configurable {
       CONFIG.getString("twitter.consumer.secret"),
       CONFIG.getString("twitter.token.key"),
       CONFIG.getString("twitter.token.secret"),
-      (rawTweet: RawTweet) => {
+      (rawTweet: String) => {
         twitterProcessorActors ! rawTweet; true
       })
     if(!terms.isEmpty)
