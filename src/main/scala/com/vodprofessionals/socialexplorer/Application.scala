@@ -21,23 +21,71 @@ import scala.slick.driver.JdbcProfile
  *
  */
 object Application extends App with LazyLogging with Configurable {
+  val actorSystem    = ActorSystem("socialStreamNodeSystem")
+  val processorCores = Runtime.getRuntime().availableProcessors()
+  val nrOfWorkers    = if (processorCores > 1) processorCores * 2 - 1 else 1
 
   try {
-
-    val processorCores = Runtime.getRuntime().availableProcessors()
-    val nrOfWorkers    = if (processorCores > 1) processorCores * 2 - 1 else 1
-    val actorSystem    = ActorSystem("socialStreamNodeSystem")
-
-
     if (args.length > 0)
       actorSystem.actorOf(Props[VaadinService]) ! StartVaadinService  // Looks like we are a web node
 
+    //runWithAkka
+    runPlain
+
+  } catch {
+    case ex: Throwable => logger.error(ex.getMessage, ex)
+  }
+
+
+  /**
+   *
+   */
+  def runPlain = {
+    val slickTwitterStore = new SlickTwitterStore();
+    val twitterProcessor = new TwitterProcessor(
+      (tweet: Tweet) => slickTwitterStore.insert(tweet)
+    )
+    val twitterCollector = new TwitterCollector(
+      CONFIG.getString("twitter.consumer.key"),
+      CONFIG.getString("twitter.consumer.secret"),
+      CONFIG.getString("twitter.token.key"),
+      CONFIG.getString("twitter.token.secret"),
+      (rawTweet: RawTweet) => {
+        twitterProcessor.process(rawTweet)
+        true
+      }
+    )
+
+    // Let's load the search terms from the DB
+    class DAL(val dbProfile: JdbcProfile) extends SlickComponents with ContextAwareRDBMSProfile {
+      import dbProfile.simple._
+
+      DB withSession { implicit session: Session =>
+        createTables(session)
+      }
+
+      def getSearchTerms(): List[String] =
+        DB withSession { implicit session: Session =>
+          val searchTerms = TableQuery[SearchTerms]
+          (for(t <- searchTerms) yield t.term).run
+            .toList
+        }
+    }
+    val terms = (new DAL(ContextAwareRDBMSDriver.driver)).getSearchTerms
+
+    twitterCollector.start(terms)
+  }
+
+  /**
+   *
+   */
+  def runWithAkka = {
     // Attempt to create the Slick RDBMS twitter store
     val slickStoreActor = actorSystem.actorOf(Props(new RDBMSTwitterStoreActor(new SlickTwitterStore())))
 
     // Attempt to boot up the Twitter processor actors
     val actorPaths = for (i <- 1 to nrOfWorkers)
-      yield actorSystem.actorOf(Props(new TwitterProcessorActor(new TwitterProcessor(
+    yield actorSystem.actorOf(Props(new TwitterProcessorActor(new TwitterProcessor(
         (tweet: Tweet) => slickStoreActor ! AddTwitterMessage(tweet)
       )))).path.toString
 
@@ -75,8 +123,5 @@ object Application extends App with LazyLogging with Configurable {
 
     else
       logger.error("No search terms defined so not starting collector")
-
-  } catch {
-    case ex: Throwable => logger.error(ex.getMessage, ex)
   }
 }
