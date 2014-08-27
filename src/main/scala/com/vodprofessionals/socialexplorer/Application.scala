@@ -1,12 +1,13 @@
 package com.vodprofessionals.socialexplorer
 
-import akka.actor.{ActorSystem, Props}
-import akka.routing.RoundRobinGroup
+import _root_.akka.actor.{ActorSystem, Props}
+import _root_.akka.routing.RoundRobinGroup
 import com.typesafe.scalalogging.LazyLogging
-import com.vodprofessionals.socialexplorer.actors.{TwitterProcessorActor, TwitterCollectorActor}
-import com.vodprofessionals.socialexplorer.collector.CollectorMessages.StartTwitterCollector
+import com.vodprofessionals.socialexplorer.akka.RDBMSTwitterStoreMessages.AddTwitterMessage
+import com.vodprofessionals.socialexplorer.akka.TwitterCollectorMessages.StartTwitterCollector
+import com.vodprofessionals.socialexplorer.akka._
 import com.vodprofessionals.socialexplorer.domain.{Tweet, RawTweet}
-import com.vodprofessionals.socialexplorer.persistence.{SlickComponents, AddTwitterMessage, SlickTwitterStore}
+import com.vodprofessionals.socialexplorer.persistence.{SlickComponents, SlickTwitterStore}
 import com.vodprofessionals.socialexplorer.processor.TwitterProcessor
 import com.vodprofessionals.socialexplorer.web.{StartVaadinService, VaadinService}
 import hu.lazycat.scala.config.Configurable
@@ -32,7 +33,7 @@ object Application extends App with LazyLogging with Configurable {
       actorSystem.actorOf(Props[VaadinService]) ! StartVaadinService  // Looks like we are a web node
 
     // Attempt to create the Slick RDBMS twitter store
-    val slickStoreActor = actorSystem.actorOf(Props(new SlickTwitterStore()))
+    val slickStoreActor = actorSystem.actorOf(Props(new RDBMSTwitterStoreActor(new SlickTwitterStore())))
 
     // Attempt to boot up the Twitter processor actors
     val actorPaths = for (i <- 1 to nrOfWorkers)
@@ -60,7 +61,6 @@ object Application extends App with LazyLogging with Configurable {
     }
     val terms = (new DAL(ContextAwareRDBMSDriver.driver)).getSearchTerms
 
-
     // Attempt to start a Twitter collector actor
     val twitterCollector = new TwitterCollector(
       CONFIG.getString("twitter.consumer.key"),
@@ -72,6 +72,7 @@ object Application extends App with LazyLogging with Configurable {
       })
     if(!terms.isEmpty)
       actorSystem.actorOf(Props(new TwitterCollectorActor(twitterCollector))) ! StartTwitterCollector( terms )
+
     else
       logger.error("No search terms defined so not starting collector")
 

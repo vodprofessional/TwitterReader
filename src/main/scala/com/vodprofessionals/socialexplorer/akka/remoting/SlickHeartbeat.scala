@@ -1,4 +1,4 @@
-package com.vodprofessionals.socialexplorer.actors
+package com.vodprofessionals.socialexplorer.akka.remoting
 
 /**
  * Keeps a heartbeat in the database

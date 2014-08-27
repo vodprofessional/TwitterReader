@@ -21,7 +21,7 @@ class TwitterCollector (
       val tokenKey:       String,
       val tokenSecret:    String,
       val processor:      RawTweet => Boolean
-                       ) extends Collector with LazyLogging with Configurable {
+                       ) extends LazyLogging with Configurable {
 
   val endpoint = new StatusesFilterEndpoint
   val twitter = (new ClientBuilder)
@@ -45,7 +45,7 @@ class TwitterCollector (
    *
    * @param terms
    */
-  override def start(terms: List[String]) = {
+  def start(terms: List[String]) = {
     endpoint.trackTerms(terms.asJava)
     twitter.connect
   }
@@ -54,6 +54,6 @@ class TwitterCollector (
    * Shuts down the worker application
    *
    */
-  override def stop =
+  def stop =
     twitter.stop()
 }
