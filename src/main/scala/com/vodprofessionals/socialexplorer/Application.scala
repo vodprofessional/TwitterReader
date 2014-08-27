@@ -7,6 +7,7 @@ import com.vodprofessionals.socialexplorer.akka.RDBMSTwitterStoreMessages.AddTwi
 import com.vodprofessionals.socialexplorer.akka.TwitterCollectorMessages.StartTwitterCollector
 import com.vodprofessionals.socialexplorer.akka._
 import com.vodprofessionals.socialexplorer.domain.Tweet
+import com.vodprofessionals.socialexplorer.model.SearchTerms
 import com.vodprofessionals.socialexplorer.persistence.{SlickComponents, SlickTwitterStore}
 import com.vodprofessionals.socialexplorer.processor.TwitterProcessor
 import com.vodprofessionals.socialexplorer.web.{StartVaadinService, VaadinService}
@@ -73,7 +74,10 @@ object Application extends App with LazyLogging with Configurable {
     }
     val terms = (new DAL(ContextAwareRDBMSDriver.driver)).getSearchTerms
 
-    twitterCollector.start(terms)
+    if (!terms.isEmpty) {
+      SearchTerms.addTerms(terms)
+      twitterCollector.start
+    }
   }
 
   /**
@@ -118,8 +122,10 @@ object Application extends App with LazyLogging with Configurable {
       (rawTweet: String) => {
         twitterProcessorActors ! rawTweet; true
       })
-    if(!terms.isEmpty)
-      actorSystem.actorOf(Props(new TwitterCollectorActor(twitterCollector))) ! StartTwitterCollector( terms )
+    if(!terms.isEmpty) {
+      SearchTerms.addTerms(terms)
+      actorSystem.actorOf(Props(new TwitterCollectorActor(twitterCollector))) ! StartTwitterCollector
+    }
 
     else
       logger.error("No search terms defined so not starting collector")

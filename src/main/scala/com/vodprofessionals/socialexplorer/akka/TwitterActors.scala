@@ -13,8 +13,8 @@ import com.vodprofessionals.socialexplorer.processor.TwitterProcessor
 object TwitterCollectorMessages {
   sealed trait CollectorMessage
 
-  case class StartTwitterCollector(terms: List[String]) extends CollectorMessage
-  case class RestartTwitterCollector(terms: List[String]) extends CollectorMessage
+  case object StartTwitterCollector extends CollectorMessage
+  case object RestartTwitterCollector extends CollectorMessage
   case object StopTwitterCollector extends CollectorMessage
 }
 
@@ -28,14 +28,13 @@ class TwitterCollectorActor ( val twitterCollector: TwitterCollector ) extends A
    * @return
    */
   def receive = {
-    case StartTwitterCollector(terms) =>
-      logger.error("TwitterCollectorActor START")
-      twitterCollector.start(terms)
+    case StartTwitterCollector =>
+      twitterCollector.start
 
       context.become({
-        case RestartTwitterCollector(terms: List[String]) =>
+        case RestartTwitterCollector =>
           twitterCollector.stop
-          twitterCollector.start(terms)
+          twitterCollector.start
 
         case StopTwitterCollector =>
           twitterCollector.stop

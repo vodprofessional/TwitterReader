@@ -1,17 +1,16 @@
 package com.vodprofessionals.socialexplorer.model
 
+import com.typesafe.scalalogging.LazyLogging
 import hu.lazycat.scala.config.Configurable
 import scala.collection.immutable.List
-import scala.collection.JavaConverters._
+
 
 /**
  *
  */
-object SearchTerms extends Configurable {
+object SearchTerms extends Configurable with LazyLogging {
   var terms: List[String] = List()
   var termsChangeCallbacks: List[List[String] => Unit] = List()
-
-  terms = CONFIG.getStringList("temp.terms").asScala.toList
 
 
   /**
@@ -21,6 +20,17 @@ object SearchTerms extends Configurable {
    */
   def addTerm(term: String) = {
     term :: terms
+    for {callback <- termsChangeCallbacks} yield callback(terms)
+  }
+
+  /**
+   * Add a list of terms to the search terms list
+   *
+   * @param termList
+   * @return
+   */
+  def addTerms(termList: List[String]) = {
+    terms = termList ++ terms
     for {callback <- termsChangeCallbacks} yield callback(terms)
   }
 

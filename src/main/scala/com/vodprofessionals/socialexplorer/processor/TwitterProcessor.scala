@@ -25,4 +25,5 @@ class TwitterProcessor(
         storage(tweet)
       }
   }
+
 }
