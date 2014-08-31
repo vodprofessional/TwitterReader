@@ -14,6 +14,7 @@ import com.vodprofessionals.socialexplorer.web.{StartVaadinService, VaadinServic
 import hu.lazycat.scala.config.Configurable
 import com.vodprofessionals.socialexplorer.collector.TwitterCollector
 import hu.lazycat.scala.slick.{ContextAwareRDBMSProfile, ContextAwareRDBMSDriver}
+import twitter4j.User
 
 import scala.slick.driver.JdbcProfile
 
@@ -28,10 +29,11 @@ object Application extends App with LazyLogging with Configurable {
 
   try {
     if (args.length > 0)
-      actorSystem.actorOf(Props[VaadinService]) ! StartVaadinService  // Looks like we are a web node
+      actorSystem.actorOf(Props[VaadinService]) ! StartVaadinService
 
     //runWithAkka
     runPlain
+
 
   } catch {
     case ex: Throwable => logger.error(ex.getMessage, ex)
@@ -78,6 +80,8 @@ object Application extends App with LazyLogging with Configurable {
       SearchTerms.addTerms(terms)
       twitterCollector.start
     }
+
+    // TODO Start the twitter user data collection
   }
 
   /**

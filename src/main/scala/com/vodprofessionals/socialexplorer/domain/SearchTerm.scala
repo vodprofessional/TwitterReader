@@ -5,5 +5,11 @@ import java.util.Date
 case class SearchTerm(id: Option[Long],
                       term: String,
                       createdAt: Date,
-                      ownerId: Int)
+                      termType: SearchTermType,
+                      containerId: Long)
+
+sealed trait SearchTermType { val name = ""; def getName = name }
+case object StaticSearchTerm extends SearchTermType { override val name = "static" }
+case object DynamicSearchTerm extends SearchTermType { override val name = "dynamic" }
+
 
