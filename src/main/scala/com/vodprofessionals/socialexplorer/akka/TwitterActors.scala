@@ -5,7 +5,7 @@ import com.typesafe.scalalogging.LazyLogging
 import com.vodprofessionals.socialexplorer.akka.RDBMSTwitterStoreMessages.AddTwitterMessage
 import com.vodprofessionals.socialexplorer.akka.TwitterCollectorMessages.{StopTwitterCollector, RestartTwitterCollector, StartTwitterCollector}
 import com.vodprofessionals.socialexplorer.collector.TwitterCollector
-import com.vodprofessionals.socialexplorer.domain.Tweet
+import com.vodprofessionals.socialexplorer.domain.{Tweeter, Tweet}
 import com.vodprofessionals.socialexplorer.persistence.TwitterStore
 import com.vodprofessionals.socialexplorer.processor.TwitterProcessor
 
@@ -69,7 +69,7 @@ class TwitterProcessorActor(
 
 
 object RDBMSTwitterStoreMessages {
-  case class AddTwitterMessage(tweet: Tweet)
+  case class AddTwitterMessage(tweet: Tweet, tweeter: Tweeter)
 }
 
 /**
@@ -84,8 +84,9 @@ class RDBMSTwitterStoreActor (
    * @return
    */
   def receive = {
-    case AddTwitterMessage(tweet: Tweet) =>
-      rdbmsTwitterStore.insert(tweet)
+    case AddTwitterMessage(tweet: Tweet, tweeter: Tweeter) =>
+      rdbmsTwitterStore.insertTweeter(tweeter)
+      rdbmsTwitterStore.insertTweet(tweet)
 
   }
 

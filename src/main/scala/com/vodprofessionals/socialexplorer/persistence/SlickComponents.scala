@@ -37,26 +37,28 @@ trait SlickComponents { this: ContextAwareRDBMSProfile =>
     def * = (name, value) <> (Setting.tupled, Setting.unapply)
   }
 
-  class Tweets(tag: Tag) extends Table[Tweet](tag, "tweet") {
+  class Tweets(tag: Tag) extends Table[Tweet](tag, "tweets") {
     def id = column[Long]("id", O.PrimaryKey, O.AutoInc)
     def text = column[String]("text", O.NotNull, O.DBType("VARCHAR(150)"))
     def term = column[String]("term", O.NotNull, O.DBType("VARCHAR(150)"))
     def tweetedAt = column[Date]("tweetedAt", O.NotNull)
-    def tweetId = column[String]("tweetId", O.NotNull, O.DBType("VARCHAR(30)"))
+    def tweetId = column[Long]("tweetId", O.NotNull)
     def tweeterId = column[Long]("tweeter_id", O.NotNull)
-    def retweets = column[Long]("retweets")
-    def favorites = column[Long]("favorites")
-    def * = (id.?, text, term, tweetedAt, tweetId, tweeterId, retweets, favorites) <> (Tweet.tupled, Tweet.unapply)
+    def retweets = column[Long]("retweets", O.NotNull)
+    def favorites = column[Long]("favorites", O.NotNull)
+    def replyToId = column[Long]("reply_to_id", O.Nullable)
+    def * = (id.?, text, term, tweetedAt, tweetId, tweeterId, retweets, favorites, replyToId.?) <> (Tweet.tupled, Tweet.unapply)
     def idx = index("tweetid_idx", tweetId, unique = true)
     def tweeter = foreignKey("tweeter_id", tweeterId, TableQuery[Tweeters])(_.id)
   }
 
-  class Tweeters(tag: Tag) extends Table[Tweeter](tag, "tweeter") {
-    def id = column[Long]("id", O.PrimaryKey, O.AutoInc)
+  class Tweeters(tag: Tag) extends Table[Tweeter](tag, "tweeters") {
+    def id = column[Long]("id", O.PrimaryKey)
     def screenName = column[String]("screen_name", O.NotNull, O.DBType("VARCHAR(255)"))
     def joinDate = column[Date]("join_date", O.NotNull)
-    def location = column[String]("location", O.DBType("VARCHAR(255)"))
-    def * = (id.?, screenName, joinDate, location) <> (Tweeter.tupled, Tweeter.unapply)
+    def location = column[String]("location", O.NotNull, O.DBType("VARCHAR(255)"))
+    def followersCount = column[Long]("followers_count", O.NotNull)
+    def * = (id, screenName, joinDate, location, followersCount) <> (Tweeter.tupled, Tweeter.unapply)
   }
 
   class Services(tag: Tag) extends Table[Service](tag, "services") {
@@ -90,14 +92,14 @@ trait SlickComponents { this: ContextAwareRDBMSProfile =>
    */
   def createTables(implicit session: Session) =
     (
-      for (table <- List("settings", "tweet", "tweeters", "services", "service_extras", "search_term") if MTable.getTables(table).list.isEmpty )
+      for (table <- List("settings", "tweets", "tweeters", "services", "service_extras", "search_terms") if MTable.getTables(table).list.isEmpty )
         yield table match {
-          case "settings" => TableQuery[Settings].ddl
-          case "tweet" => TableQuery[Tweets].ddl
-          case "tweeters" => TableQuery[Tweeters].ddl
-          case "services" => TableQuery[Services].ddl
+          case "settings"       => TableQuery[Settings].ddl
+          case "tweets"         => TableQuery[Tweets].ddl
+          case "tweeters"       => TableQuery[Tweeters].ddl
+          case "services"       => TableQuery[Services].ddl
           case "service_extras" => TableQuery[ServiceExtras].ddl
-          case "search_term" => TableQuery[SearchTerms].ddl
+          case "search_terms"   => TableQuery[SearchTerms].ddl
         }
     )
       .foldLeft[Option[dbProfile.SchemaDescription]](None)( (ddls, ddl) => if (ddls.isDefined) Some((ddls.get ++ ddl)) else Some(ddl) )

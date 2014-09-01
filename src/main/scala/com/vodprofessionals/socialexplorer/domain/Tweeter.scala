@@ -5,7 +5,8 @@ import _root_.java.util.Date
 /**
  *
  */
-case class Tweeter(id: Option[Long],
+case class Tweeter(id: Long,
                    screenName: String,
                    joinDate: Date,
-                   location: String)
+                   location: String,
+                   followersCount: Long)

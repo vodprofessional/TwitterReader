@@ -5,7 +5,7 @@ import _root_.java.util.Date
 import com.typesafe.scalalogging.LazyLogging
 import com.vodprofessionals.socialexplorer.domain.{Tweeter, Tweet}
 import com.vodprofessionals.socialexplorer.model.SearchTerms
-import org.json4s.JsonAST.{JInt, JString}
+import org.json4s.JsonAST.{JObject, JBool, JInt, JString}
 import org.json4s.jackson.JsonMethods._
 
 
@@ -13,8 +13,10 @@ import org.json4s.jackson.JsonMethods._
  *
  */
 class TwitterProcessor(
-                        val storage: Tweet => Unit
+                        val storage: (Tweet, Tweeter) => Unit
                        ) extends LazyLogging {
+
+  val dateFormat = new java.text.SimpleDateFormat("EEE MMM dd HH:mm:ss Z yyyy", java.util.Locale.US)
 
 
   /*
@@ -23,12 +25,14 @@ class TwitterProcessor(
   def process(rawTweet: String) = rawTweet match {
     case jsonMessage: String =>
       val json = parse(jsonMessage)
-      val tweet = parseTweet(json, SearchTerms.matchTerms(jsonMessage))
-      val tweeter = getTweeter(json)
+      val retweetedStatus = { json \ "retweeted_status" } match {
+        case s: JObject => Some(s)
+        case _ => None
+      }
+      val terms = SearchTerms.matchTerms(jsonMessage)
 
-      // Any processing of the Tweet data comes here...
-      if (tweet.term.length > 0) {
-        storage(tweet)
+      if (terms.size > 0) {
+        storage(parseTweet(retweetedStatus.getOrElse(json), terms), parseTweeter(json))
       }
   }
 
@@ -38,51 +42,68 @@ class TwitterProcessor(
    * @param json The raw string containing the JSON object
    * @return Tweet
    */
-  def parseTweet(json: org.json4s.JValue, matchingTerms: Set[String]): Tweet = {
-    val dateFormat = new java.text.SimpleDateFormat("EEE MMM dd HH:mm:ss Z yyyy", java.util.Locale.US)
-    val text: String = { json \ "text" } match {
-      case JString(s) => s
-      case _ => ""
-    }
-
+  def parseTweet(json: org.json4s.JValue, matchingTerms: Set[String]): Tweet =
     Tweet(
       None,
-      text,
+      { json \ "text" } match {
+        case JString(s) => s
+        case _ => ""
+      },
       matchingTerms.mkString(","),
       { json \ "created_at" } match {
         case JString(dateText:String) => dateFormat.parse(dateText)
         case _ => new Date(0L)
       },
-      { json \ "id_str" } match {
-        case JString(s) => s
-        case _ => ""
+      { json \ "id" } match {
+        case JInt(s) => s.toLong
+        case _ => 0L
       },
-      -1,                         // TODO Somehow we need to use None here
+      { json \ "user" \ "id"} match {
+        case JInt(s) => s.toLong
+        case _ => 0L
+      },
       { json \ "retweet_count" } match {
-        case JInt(i) => i.intValue()
-        case _ => 0
+        case JInt(i) => i.toLong
+        case _ => 0L
       },
       { json \ "favorite_count" } match {
-        case JInt(i) => i.intValue()
-        case _ => 0
+        case JInt(i) => i.toLong
+        case _ => 0L
+      },
+      { json \ "in_reply_to_status_id" } match {
+        case JInt(i) => Some(i.toLong)
+        case _ => None
       }
     )
-  }
+
 
   /**
-   * Get the Tweeter user account data
    *
    * @param json
    */
-  def getTweeter(json: org.json4s.JValue) = {
+  def parseTweeter(json: org.json4s.JValue): Tweeter = {
     Tweeter(
-      None,
+      { json \ "user" \ "id" } match {
+        case JInt(s) => s.toLong
+        case _ => 0L
+      },
       { json \ "user" \ "screen_name" } match {
         case JString(s) => s
         case _ => ""
       },
-      new java.util.Date(), // TODO Parse date
-      ""  // TODO Parse location
+      { json \ "user" \ "created_at" } match {
+        case JString(s) => dateFormat.parse(s)
+        case _ => new Date(0L)
+      },
+      { json \ "user" \ "location" } match {
+        case JString(s) => s
+        case _ => ""
+      },
+      { json \ "user" \ "followers_count" } match {
+        case JInt(s) => s.toLong
+        case _ => 0L
+      }
     )
   }
+
 }

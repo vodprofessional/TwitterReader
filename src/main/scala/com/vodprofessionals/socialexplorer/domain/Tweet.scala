@@ -6,12 +6,13 @@ import org.json4s.JString
 import org.json4s.JsonAST.JInt
 import org.json4s.jackson.JsonMethods._
 
-case class Tweet(id: Option[Long],
-                 text: String,
-                 term: String,
+case class Tweet(id:        Option[Long],
+                 text:      String,
+                 term:      String,
                  tweetedAt: Date,
-                 tweetId: String,
+                 tweetId:   Long,
                  tweeterId: Long,
-                 retweets: Long = 0,
-                 favorites: Long = 0)
+                 retweets:  Long,
+                 favorites: Long,
+                 replyToId: Option[Long])
 
