@@ -34,10 +34,19 @@ class SlickTwitterStore (
   def insertTweet(tweet: Tweet) =
     DB withSession { implicit session: Session =>
       try {
-        //session.withTransaction {}
-        //tweets.filter(t => t.tweetId === tweet)
-
-        tweets += tweet
+        if (tweet.retweets > 0)
+          session.withTransaction {
+            if (tweets.filter(_.tweetId === tweet.tweetId).length.run > 0) {
+              tweets.filter(_.tweetId === tweet.tweetId).update(tweet)
+              logger.info("Got One Existing Retweet")
+            }
+            else {
+              tweets += tweet
+              logger.info("Got One New Retweet")
+            }
+          }
+        else
+          tweets += tweet
       } catch {
         case sqlException: java.sql.SQLException =>
           sqlException.getSQLState match {
@@ -50,9 +59,7 @@ class SlickTwitterStore (
               case _ => logger.error("Database Error: " + sqlException.getMessage + " SQLSTATE: " + sqlStateCode)
             }
             case sqlStateCode: String => sqlException.getErrorCode match {
-              case 1366 => {
-                //logger.warn("Cannot convert tweet text to MySQl UTF8")
-              }
+              case 1366 => logger.warn("Cannot convert tweet text to MySQl UTF8")
               case _ => logger.error("Database Error: " + sqlException.getMessage + " ERRORCODE: " + sqlException.getErrorCode)
             }
             case _ => logger.error("Database Error: " + sqlException.getMessage + " ERRORCODE: " + sqlException.getErrorCode)
