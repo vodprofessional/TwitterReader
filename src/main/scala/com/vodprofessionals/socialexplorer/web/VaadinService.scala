@@ -1,6 +1,7 @@
 package com.vodprofessionals.socialexplorer.web
 
 import akka.actor.Actor
+import com.typesafe.scalalogging.LazyLogging
 import org.eclipse.jetty.server.{Server, ServerConnector}
 import org.eclipse.jetty.servlet.{ServletHolder, ServletContextHandler}
 import org.eclipse.jetty.util.component.LifeCycle
@@ -8,20 +9,16 @@ import org.eclipse.jetty.websocket.jsr356.server.deploy.WebSocketServerContainer
 import scala.concurrent.{Future, Promise}
 
 
-case class StartVaadinService()
+case class StartVaadinService(port: Int)
 case class StopVaadinService()
 
 /**
  * A root service to start the web interface.
  *
  */
-class VaadinService extends Actor {
-  val server: Server = new Server();
-
-
-  override def preStart = {
-
-  }
+class VaadinService(
+            val webServer: WebServer
+                   ) extends Actor with LazyLogging {
 
   /**
    *
@@ -29,34 +26,14 @@ class VaadinService extends Actor {
    */
   def receive = {
 
-    case StartVaadinService => {
-      val context        = new ServletContextHandler(ServletContextHandler.SESSIONS);
-      val servletHolder  = new ServletHolder(new com.vaadin.server.VaadinServlet());
+    case StartVaadinService(port) =>
+      webServer.start(port)
 
-      servletHolder.setAsyncSupported(true);
-      for ((key, value) <- Map(
-        "pushmode"                        -> "automatic",
-        "productionMode"                  -> "false",
-        "UI"                              -> "com.vodprofessionals.socialexplorer.web.DashboardUI",
-        "widgetset"                       -> "com.vodprofessionals.socialexplorer.web.DashboardUI",
-        "org.atmosphere.cpr.asyncSupport" -> "org.atmosphere.container.JSR356AsyncSupport"))
-      yield servletHolder.setInitParameter(key, value)
-      context.setContextPath("/")
-      context.setResourceBase(this.getClass().getClassLoader().getResource("webapp/").toExternalForm())
-      context.addServlet(servletHolder, "/*")
-      WebSocketServerContainerInitializer.configureContext( context )
-
-      val httpConnector = new ServerConnector(server)
-      httpConnector.setPort(8080)
-      server.addConnector(httpConnector)
-      server.setHandler(context)
-      server.start()
-    }
 
     case StopVaadinService =>
-      if (server.isStarted)
+      if (webServer.isStarted)
         try {
-          server.stop()
+          webServer.stop
         } catch {
           case _: Throwable => {}
         }
@@ -67,7 +44,7 @@ class VaadinService extends Actor {
    */
   override def postStop =
     try {
-      server.stop()
+      webServer.stop
     } catch {
       case _: Throwable => {}
     }

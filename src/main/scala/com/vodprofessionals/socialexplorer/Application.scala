@@ -10,7 +10,7 @@ import com.vodprofessionals.socialexplorer.domain.{Tweeter, Tweet}
 import com.vodprofessionals.socialexplorer.model.SearchTerms
 import com.vodprofessionals.socialexplorer.persistence.{SlickComponents, SlickTwitterStore}
 import com.vodprofessionals.socialexplorer.processor.TwitterProcessor
-import com.vodprofessionals.socialexplorer.web.{StartVaadinService, VaadinService}
+import com.vodprofessionals.socialexplorer.web.{WebServer, StartVaadinService, VaadinService}
 import hu.lazycat.scala.config.Configurable
 import com.vodprofessionals.socialexplorer.collector.TwitterCollector
 import hu.lazycat.scala.slick.{ContextAwareRDBMSProfile, ContextAwareRDBMSDriver}
@@ -28,13 +28,8 @@ object Application extends App with LazyLogging with Configurable {
   val nrOfWorkers    = if (processorCores > 1) processorCores * 2 - 1 else 1
 
   try {
-    if (args.length > 0)
-      actorSystem.actorOf(Props[VaadinService]) ! StartVaadinService
-
-    //runWithAkka
-    runPlain
-
-
+    //runWithAkka(Integer.parseInt(args.head))
+    runPlain(Integer.parseInt(args.head))
   } catch {
     case ex: Throwable => logger.error(ex.getMessage, ex)
   }
@@ -43,7 +38,11 @@ object Application extends App with LazyLogging with Configurable {
   /**
    *
    */
-  def runPlain = {
+  def runPlain(port: Int) = {
+    val webServer = new WebServer
+    if (port > 0)
+      webServer.start(port)
+
     val slickTwitterStore = new SlickTwitterStore();
 
     val twitterProcessor = new TwitterProcessor(
@@ -92,7 +91,10 @@ object Application extends App with LazyLogging with Configurable {
   /**
    *
    */
-  def runWithAkka = {
+  def runWithAkka(port: Int) = {
+    if (port > 0)
+      actorSystem.actorOf(Props[VaadinService]) ! StartVaadinService(port)
+
     // Attempt to create the Slick RDBMS twitter store
     val slickStoreActor = actorSystem.actorOf(Props(new RDBMSTwitterStoreActor(new SlickTwitterStore())))
 

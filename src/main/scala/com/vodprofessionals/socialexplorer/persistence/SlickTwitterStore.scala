@@ -38,12 +38,10 @@ class SlickTwitterStore (
           session.withTransaction {
             if (tweets.filter(_.tweetId === tweet.tweetId).length.run > 0) {
               tweets.filter(_.tweetId === tweet.tweetId).update(tweet)
-              logger.info("Got One Existing Retweet")
+              logger.info("Got One Existing Retweet") // TODO Not sure if it properly records the retweet
             }
-            else {
+            else
               tweets += tweet
-              logger.info("Got One New Retweet")
-            }
           }
         else
           tweets += tweet
