@@ -1,6 +1,6 @@
 import com.typesafe.sbt.SbtNativePackager._
 import NativePackagerKeys._
-import org.vaadin.sbt.VaadinPlugin._
+//import org.vaadin.sbt.VaadinPlugin._
 
 
 packageArchetype.java_server
@@ -29,11 +29,6 @@ libraryDependencies ++= Seq(
   "hu.lazycat"                 %% "lazycat-scala-utils"         % "1.0.1",
   "com.rabbitmq"               %  "amqp-client"                 % "3.3.4",
   "com.github.sstone"          %% "amqp-client"                 % "1.4",
-  "com.vaadin"                 %  "vaadin-server"               % "7.2.5",
-  "com.vaadin"                 %  "vaadin-themes"               % "7.2.5",        //% "container",
-  "com.vaadin"                 %  "vaadin-client-compiled"      % "7.2.5",
-  "com.vaadin"                 %  "vaadin-client-compiler"      % "7.2.5",        //% "container",
-  "com.vaadin"                 %  "vaadin-push"                 % "7.2.5",        //% "container",
   "com.typesafe.akka"          %% "akka-actor"                  % "2.3.4",
   "org.json4s"                 %% "json4s-jackson"              % "3.2.10",
   "com.twitter"                %  "hbc-core"                    % "2.2.0",
@@ -45,19 +40,22 @@ libraryDependencies ++= Seq(
   "org.postgresql"             %  "postgresql"                  % "9.3-1102-jdbc4",
   "mysql"                      %  "mysql-connector-java"        % "5.1.31",
   "com.h2database"             %  "h2"                          % "1.3.148"         % Test,
-  "org.eclipse.jetty"          %  "jetty-server"                % "9.2.2.v20140723",
-  "org.eclipse.jetty.websocket"%  "javax-websocket-server-impl" % "9.2.2.v20140723",
   "javax.websocket"            %  "javax.websocket-api"         % "1.0",
   "javax.servlet"              %  "javax.servlet-api"           % "3.1.0"           % "provided",
-  "org.eclipse.jetty"          %  "jetty-plus"                  % "9.2.2.v20140723" % "container",
-  "org.eclipse.jetty"          %  "jetty-server"                % "9.2.2.v20140723" % "container",
-  "org.eclipse.jetty"          %  "jetty-servlet"               % "9.2.2.v20140723" % "container",
-  "org.eclipse.jetty"          %  "jetty-webapp"                % "9.2.2.v20140723" % "container",
-  "javax.servlet.jsp"          %  "jsp-api"                     % "2.2"             % "container"
+  "org.eclipse.jetty"          %  "jetty-server"                % "9.2.2.v20140723",
+  "org.eclipse.jetty.websocket"%  "javax-websocket-server-impl" % "9.2.2.v20140723",
+  "org.eclipse.jetty"          %  "jetty-webapp"                % "9.2.2.v20140723",
+  "org.eclipse.jetty"          %  "jetty-servlet"               % "9.2.2.v20140723",
+  "com.vaadin"                 %  "vaadin-server"               % "7.2.5",
+  "com.vaadin"                 %  "vaadin-themes"               % "7.2.5",        //% "container",
+  "com.vaadin"                 %  "vaadin-client-compiled"      % "7.2.5",
+  "com.vaadin"                 %  "vaadin-client-compiler"      % "7.2.5",        //% "container",
+  "com.vaadin"                 %  "vaadin-push"                 % "7.2.5"        //% "container",
 )
 
-target in compileVaadinWidgetsets := (sourceDirectory in Compile).value / "webapp" / "VAADIN" / "widgetsets"
 
-vaadinWebSettings
+//target in compileVaadinWidgetsets := (sourceDirectory in Compile).value / "webapp" / "VAADIN" / "widgetsets"
+
+//vaadinWebSettings
 
 //webSettings
