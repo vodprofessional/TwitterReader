@@ -27,13 +27,20 @@ object Application extends App with LazyLogging with Configurable {
   val processorCores = Runtime.getRuntime().availableProcessors()
   val nrOfWorkers    = if (processorCores > 1) processorCores * 2 - 1 else 1
 
+
   try {
     //runWithAkka(Integer.parseInt(args.head))
-    runPlain(Integer.parseInt(args.head))
+    //runPlain(Integer.parseInt(args.head))
+    runWeb(8080)
   } catch {
     case ex: Throwable => logger.error(ex.getMessage, ex)
   }
 
+
+  def runWeb(port: Int): Unit = {
+    val webServer = new WebServer
+    webServer.start(port)
+  }
 
   /**
    *

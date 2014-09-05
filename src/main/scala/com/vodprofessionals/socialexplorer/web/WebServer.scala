@@ -24,13 +24,16 @@ class WebServer extends LazyLogging with Configurable {
     for ((key, value) <- Map(
       "pushmode"                        -> "automatic",
       "productionMode"                  -> "false",
-      "UI"                              -> "com.vodprofessionals.socialexplorer.web.DashboardUI",
+      "UI"                              -> "com.vodprofessionals.socialexplorer.vaadin.DashboardUI",
+      "widgetset"                       -> "com.vodprofessionals.socialexplorer.vaadin.DashboardWidgetSet",
+      "UIProvider"                      -> "com.vodprofessionals.socialexplorer.vaadin.DashboardUIProvider",
       "org.atmosphere.cpr.asyncSupport" -> "org.atmosphere.container.JSR356AsyncSupport"))
     yield servletHolder.setInitParameter(key, value)
 
     context.setContextPath("/")
     //context.setResourceBase(this.getClass().getClassLoader().getResource("webapp/").toExternalForm())
     context.addServlet(servletHolder, "/*")
+    context.addEventListener(new org.atmosphere.cpr.SessionSupport)
 
     val securityUser = CONFIG.getString("web.security.user")
     val securityPassword = CONFIG.getString("web.security.password")
@@ -54,9 +57,7 @@ class WebServer extends LazyLogging with Configurable {
     csh.addConstraintMapping(cm)
     csh.setLoginService(loginService)
 
-    context.setSecurityHandler(csh)
-
-
+    //context.setSecurityHandler(csh)
   } catch {
     case ex: Throwable => logger.error("ERROR STARTING WEB SERVER: " + ex.getMessage, ex)
   }

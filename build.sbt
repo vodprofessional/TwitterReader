@@ -1,6 +1,6 @@
 import com.typesafe.sbt.SbtNativePackager._
 import NativePackagerKeys._
-//import org.vaadin.sbt.VaadinPlugin._
+import org.vaadin.sbt.VaadinPlugin._
 
 
 packageArchetype.java_server
@@ -17,7 +17,7 @@ batScriptExtraDefines += """set _JAVA_OPTS=%_JAVA_OPTS% -Dconfig.file=%SOCIALEXP
 
 name := "socialexplorer"
 
-version := "0.0.2"
+version := "0.0.3"
 
 scalaVersion := "2.11.2"
 
@@ -44,7 +44,7 @@ libraryDependencies ++= Seq(
   "javax.servlet"              %  "javax.servlet-api"           % "3.1.0"           % "provided",
   "org.eclipse.jetty"          %  "jetty-server"                % "9.2.2.v20140723",
   "org.eclipse.jetty.websocket"%  "javax-websocket-server-impl" % "9.2.2.v20140723",
-  "org.eclipse.jetty"          %  "jetty-webapp"                % "9.2.2.v20140723",
+  "org.eclipse.jetty"          %  "jetty-webapp"                % "9.2.2.v20140723" % "container",
   "org.eclipse.jetty"          %  "jetty-servlet"               % "9.2.2.v20140723",
   "com.vaadin"                 %  "vaadin-server"               % "7.2.5",
   "com.vaadin"                 %  "vaadin-themes"               % "7.2.5",        //% "container",
@@ -54,8 +54,8 @@ libraryDependencies ++= Seq(
 )
 
 
-//target in compileVaadinWidgetsets := (sourceDirectory in Compile).value / "webapp" / "VAADIN" / "widgetsets"
+target in compileVaadinWidgetsets := (sourceDirectory in Compile).value / "webapp" / "VAADIN" / "widgetsets"
 
-//vaadinWebSettings
+vaadinWebSettings
 
 //webSettings
