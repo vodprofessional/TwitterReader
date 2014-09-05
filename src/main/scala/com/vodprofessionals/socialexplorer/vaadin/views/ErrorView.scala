@@ -1,8 +1,8 @@
-package com.vodprofessionals.socialexplorer.vaadin
+package com.vodprofessionals.socialexplorer.vaadin.views
 
 import com.vaadin.navigator.View
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent
-import com.vaadin.ui.{VerticalLayout, Label}
+import com.vaadin.ui.{Label, VerticalLayout}
 
 /**
  *
