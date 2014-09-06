@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <appender name="stdout" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{5} - %msg%n</pattern>
+        </encoder>
+    </appender>
+    <appender name="db" class="ch.qos.logback.classic.db.DBAppender">
+        <connectionSource class="ch.qos.logback.core.db.DriverManagerConnectionSource">
+            <driverClass>org.postgresql.Driver</driverClass>
+            <url>jdbc:postgresql://ec2-54-246-86-137.eu-west-1.compute.amazonaws.com:5432/devdca1baic64p?ssl=true&amp;sslfactory=org.postgresql.ssl.NonValidatingFactory</url>
+            <user>zifyrxaovvmmwl</user>
+            <password>1p56ZjOSO04dMJq3uBuQo5aOt_</password>
+        </connectionSource>
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{5} - %msg%n</pattern>
+        </encoder>
+    </appender>
+    <root level="fatal">
+        <appender-ref ref="stdout"/>
+    </root>
+</configuration>

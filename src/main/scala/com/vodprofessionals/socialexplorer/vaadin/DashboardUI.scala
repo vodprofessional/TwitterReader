@@ -105,6 +105,7 @@ class DashboardUI extends UI {
               case Some(b) =>
                 b.addStyleName("selected")
                 nav.navigateTo(f)
+              case None => {}
             }
 
           }
@@ -144,7 +145,8 @@ class DashboardUI extends UI {
               }
             })
           })
-      })
+        }
+      )
 
       // Content
       addComponent(content)

@@ -1,6 +1,9 @@
 package com.vodprofessionals.socialexplorer
 
-import _root_.akka.actor.{ActorSystem, Props}
+
+import java.util.logging.{LogManager, Logger, Level}
+
+import _root_.akka.actor.{Props, ActorSystem}
 import _root_.akka.routing.RoundRobinGroup
 import com.typesafe.scalalogging.LazyLogging
 import com.vodprofessionals.socialexplorer.akka.RDBMSTwitterStoreMessages.AddTwitterMessage
@@ -14,7 +17,7 @@ import com.vodprofessionals.socialexplorer.web.{WebServer, StartVaadinService, V
 import hu.lazycat.scala.config.Configurable
 import com.vodprofessionals.socialexplorer.collector.TwitterCollector
 import hu.lazycat.scala.slick.{ContextAwareRDBMSProfile, ContextAwareRDBMSDriver}
-import twitter4j.User
+import org.slf4j.bridge.SLF4JBridgeHandler
 
 import scala.slick.driver.JdbcProfile
 
@@ -29,6 +32,11 @@ object Application extends App with LazyLogging with Configurable {
 
 
   try {
+    // Set up slf4j bridge to catch j.u.l messages as well
+    LogManager.getLogManager().reset()
+    SLF4JBridgeHandler.install()
+    Logger.getLogger("global").setLevel(Level.FINEST);
+
     //runWithAkka(Integer.parseInt(args.head))
     //runPlain(Integer.parseInt(args.head))
     runWeb(8080)

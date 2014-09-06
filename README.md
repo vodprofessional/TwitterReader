@@ -10,6 +10,6 @@ command in the application root directory using the command line. Configuration 
 
 You can then run the application with the following command:
 
-  target/universal/stage/bin/socialexplorer com.vodprofessionals.socialexplorer.Application
+  target/universal/stage/bin/socialexplorer -Dconfig.file=developer.conf -Dlogback.configurationFile=logger.xml com.vodprofessionals.socialexplorer.Application
 
 
