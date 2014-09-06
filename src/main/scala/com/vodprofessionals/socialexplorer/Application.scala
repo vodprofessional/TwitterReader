@@ -1,7 +1,6 @@
 package com.vodprofessionals.socialexplorer
 
-
-import java.util.logging.{LogManager, Logger, Level}
+import java.util.logging.{Level, Logger, LogManager}
 
 import _root_.akka.actor.{Props, ActorSystem}
 import _root_.akka.routing.RoundRobinGroup
@@ -9,17 +8,16 @@ import com.typesafe.scalalogging.LazyLogging
 import com.vodprofessionals.socialexplorer.akka.RDBMSTwitterStoreMessages.AddTwitterMessage
 import com.vodprofessionals.socialexplorer.akka.TwitterCollectorMessages.StartTwitterCollector
 import com.vodprofessionals.socialexplorer.akka._
+import com.vodprofessionals.socialexplorer.config.Configurable
 import com.vodprofessionals.socialexplorer.domain.{Tweeter, Tweet}
 import com.vodprofessionals.socialexplorer.model.SearchTerms
-import com.vodprofessionals.socialexplorer.persistence.{SlickComponents, SlickTwitterStore}
+import com.vodprofessionals.socialexplorer.persistence.{ContextAwareRDBMSDriver, ContextAwareRDBMSProfile, SlickComponents, SlickTwitterStore}
 import com.vodprofessionals.socialexplorer.processor.TwitterProcessor
 import com.vodprofessionals.socialexplorer.web.{WebServer, StartVaadinService, VaadinService}
-import hu.lazycat.scala.config.Configurable
 import com.vodprofessionals.socialexplorer.collector.TwitterCollector
-import hu.lazycat.scala.slick.{ContextAwareRDBMSProfile, ContextAwareRDBMSDriver}
 import org.slf4j.bridge.SLF4JBridgeHandler
 
-import scala.slick.driver.JdbcProfile
+import _root_.scala.slick.driver.JdbcProfile
 
 
 /**

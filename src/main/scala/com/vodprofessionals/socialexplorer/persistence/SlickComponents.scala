@@ -3,7 +3,6 @@ package com.vodprofessionals.socialexplorer.persistence
 import java.util.Date
 
 import com.vodprofessionals.socialexplorer.domain._
-import hu.lazycat.scala.slick.{ContextAwareRDBMSConnection, ContextAwareRDBMSProfile}
 import scala.slick.jdbc.meta.MTable
 
 

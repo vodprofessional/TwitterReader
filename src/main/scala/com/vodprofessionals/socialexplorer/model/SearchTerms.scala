@@ -1,7 +1,7 @@
 package com.vodprofessionals.socialexplorer.model
 
 import com.typesafe.scalalogging.LazyLogging
-import hu.lazycat.scala.config.Configurable
+import com.vodprofessionals.socialexplorer.config.Configurable
 import scala.collection.immutable.List
 
 

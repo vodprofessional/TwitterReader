@@ -1,8 +1,8 @@
 package com.vodprofessionals.socialexplorer.collector
 
 import com.typesafe.scalalogging.LazyLogging
+import com.vodprofessionals.socialexplorer.config.Configurable
 import com.vodprofessionals.socialexplorer.model.SearchTerms
-import hu.lazycat.scala.config.Configurable
 import com.twitter.hbc.core.endpoint.StatusesFilterEndpoint
 import com.twitter.hbc.httpclient.auth.OAuth1
 import com.twitter.hbc.core.Constants

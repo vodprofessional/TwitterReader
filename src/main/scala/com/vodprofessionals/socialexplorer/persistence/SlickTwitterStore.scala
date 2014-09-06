@@ -1,10 +1,9 @@
 package com.vodprofessionals.socialexplorer.persistence
 
 import com.typesafe.scalalogging.LazyLogging
+import com.vodprofessionals.socialexplorer.config.Configurable
 import com.vodprofessionals.socialexplorer.domain.{Tweeter, Tweet}
-import hu.lazycat.scala.config.Configurable
-import hu.lazycat.scala.immutable.Int
-import hu.lazycat.scala.slick.{ContextAwareRDBMSDriver, ContextAwareRDBMSProfile}
+import com.vodprofessionals.socialexplorer.scala.Int
 import scala.slick.driver.JdbcProfile
 
 

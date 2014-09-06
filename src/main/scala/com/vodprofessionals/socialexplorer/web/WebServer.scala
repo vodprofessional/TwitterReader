@@ -1,13 +1,12 @@
 package com.vodprofessionals.socialexplorer.web
 
+import com.vodprofessionals.socialexplorer.config.Configurable
 import com.typesafe.scalalogging.LazyLogging
-import hu.lazycat.scala.config.Configurable
 import org.eclipse.jetty.security.authentication.BasicAuthenticator
 import org.eclipse.jetty.security.{ConstraintSecurityHandler, ConstraintMapping, HashLoginService}
 import org.eclipse.jetty.server.{Server, ServerConnector}
 import org.eclipse.jetty.servlet.{ServletHolder, ServletContextHandler}
 import org.eclipse.jetty.util.security.{Constraint, Credential}
-import org.eclipse.jetty.websocket.jsr356.server.ServerContainer
 import org.eclipse.jetty.websocket.jsr356.server.deploy.WebSocketServerContainerInitializer
 
 /**

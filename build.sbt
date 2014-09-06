@@ -27,13 +27,12 @@ scalaVersion := "2.11.2"
 resolvers += "Typesafe Maven Releases" at "http://repo.typesafe.com/typesafe/maven-releases"
 
 libraryDependencies ++= Seq(
-  "hu.lazycat"                 %% "lazycat-scala-utils"         % "1.0.1" exclude("org.slf4j", "slf4j-jdk14"),
-  "com.rabbitmq"               %  "amqp-client"                 % "3.3.4",
-  "com.github.sstone"          %% "amqp-client"                 % "1.4",
+//  "com.rabbitmq"               %  "amqp-client"                 % "3.3.4",
+//  "com.github.sstone"          %% "amqp-client"                 % "1.4",
   "com.typesafe.akka"          %% "akka-actor"                  % "2.3.4",
   "org.json4s"                 %% "json4s-jackson"              % "3.2.10",
   "com.twitter"                %  "hbc-core"                    % "2.2.0",
-  "org.twitter4j"              %  "twitter4j-core"              % "4.0.2",
+//  "org.twitter4j"              %  "twitter4j-core"              % "4.0.2",
   "com.typesafe"               %  "config"                      % "1.2.1",
   "com.typesafe.scala-logging" %% "scala-logging"               % "3.0.0",
   "ch.qos.logback"             %  "logback-classic"             % "1.1.2",
