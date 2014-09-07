@@ -1,22 +1,22 @@
-package com.vodprofessionals.socialexplorer.web
+package com.vodprofessionals.socialexplorer.akka
 
 import akka.actor.Actor
 import com.typesafe.scalalogging.LazyLogging
-import org.eclipse.jetty.server.{Server, ServerConnector}
-import org.eclipse.jetty.servlet.{ServletHolder, ServletContextHandler}
-import org.eclipse.jetty.util.component.LifeCycle
-import org.eclipse.jetty.websocket.jsr356.server.deploy.WebSocketServerContainerInitializer
-import scala.concurrent.{Future, Promise}
+import com.vodprofessionals.socialexplorer.akka.WebServerActor.{StopWebServer, StartWebServer}
+import com.vodprofessionals.socialexplorer.web.WebServer
 
 
-case class StartVaadinService(port: Int)
-case class StopVaadinService()
+object WebServerActor {
+  case class StartWebServer(port: Int)
+  case class StopWebServer()
+}
+
 
 /**
  * A root service to start the web interface.
  *
  */
-class VaadinService(
+class WebServerActor(
             val webServer: WebServer
                    ) extends Actor with LazyLogging {
 
@@ -26,11 +26,11 @@ class VaadinService(
    */
   def receive = {
 
-    case StartVaadinService(port) =>
+    case StartWebServer(port) =>
       webServer.start(port)
 
 
-    case StopVaadinService =>
+    case StopWebServer =>
       if (webServer.isStarted)
         try {
           webServer.stop

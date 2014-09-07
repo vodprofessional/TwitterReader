@@ -2,15 +2,15 @@ package com.vodprofessionals.socialexplorer.akka
 
 import akka.actor.Actor
 import com.typesafe.scalalogging.LazyLogging
-import com.vodprofessionals.socialexplorer.akka.RDBMSTwitterStoreMessages.AddTwitterMessage
-import com.vodprofessionals.socialexplorer.akka.TwitterCollectorMessages.{StopTwitterCollector, RestartTwitterCollector, StartTwitterCollector}
+import com.vodprofessionals.socialexplorer.akka.RDBMSTwitterStoreActor.AddTwitterMessage
+import com.vodprofessionals.socialexplorer.akka.TwitterCollectorActor.{StopTwitterCollector, RestartTwitterCollector, StartTwitterCollector}
 import com.vodprofessionals.socialexplorer.collector.TwitterCollector
 import com.vodprofessionals.socialexplorer.domain.{Tweeter, Tweet}
 import com.vodprofessionals.socialexplorer.persistence.TwitterStore
 import com.vodprofessionals.socialexplorer.processor.TwitterProcessor
 
 
-object TwitterCollectorMessages {
+object TwitterCollectorActor {
   sealed trait CollectorMessage
 
   case object StartTwitterCollector extends CollectorMessage
@@ -68,7 +68,7 @@ class TwitterProcessorActor(
 }
 
 
-object RDBMSTwitterStoreMessages {
+object RDBMSTwitterStoreActor {
   case class AddTwitterMessage(tweet: Tweet, tweeter: Tweeter)
 }
 
