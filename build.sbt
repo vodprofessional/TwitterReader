@@ -24,7 +24,10 @@ version := "2.0.1"
 
 scalaVersion := "2.11.2"
 
-resolvers += "Typesafe Maven Releases" at "http://repo.typesafe.com/typesafe/maven-releases"
+resolvers ++= Seq(
+  "Typesafe Maven Releases" at "http://repo.typesafe.com/typesafe/maven-releases",
+  "Vaadin Addon"            at "http://maven.vaadin.com/vaadin-addons"
+)
 
 libraryDependencies ++= Seq(
   "com.typesafe.akka"          %% "akka-actor"                  % "2.3.4",
@@ -38,17 +41,13 @@ libraryDependencies ++= Seq(
   "com.typesafe.slick"         %% "slick"                       % "2.1.0-RC3",
   "org.postgresql"             %  "postgresql"                  % "9.3-1102-jdbc4",
   "mysql"                      %  "mysql-connector-java"        % "5.1.31",
-  "com.h2database"             %  "h2"                          % "1.3.148"           % Test,
-//  "javax.websocket"            %  "javax.websocket-api"         % "1.0",
-  "javax.servlet"              %  "javax.servlet-api"           % "3.1.0"             % "provided",
-  "org.eclipse.jetty"          %  "jetty-server"                % "9.2.2.v20140723",
-//  "org.eclipse.jetty.websocket"%  "javax-websocket-server-impl" % "9.2.2.v20140723",
-  "org.eclipse.jetty"          %  "jetty-webapp"                % "9.2.2.v20140723",
   "org.eclipse.jetty"          %  "jetty-servlet"               % "9.2.2.v20140723",
   "com.vaadin"                 %  "vaadin-server"               % "7.2.5",
   "com.vaadin"                 %  "vaadin-client-compiled"      % "7.2.5",
+  "org.vaadin.addons"          %  "tokenfield"                  % "7.0.1",
   "com.vaadin"                 %  "vaadin-themes"               % "7.2.5"             % Compile,
-  "com.vaadin"                 %  "vaadin-client-compiler"      % "7.2.5"             % Compile
+  "com.vaadin"                 %  "vaadin-client-compiler"      % "7.2.5"             % Compile,
+  "com.h2database"             %  "h2"                          % "1.3.148"           % Test
 )
 
 vaadinSettings

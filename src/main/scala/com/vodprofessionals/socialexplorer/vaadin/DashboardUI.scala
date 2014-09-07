@@ -2,16 +2,14 @@ package com.vodprofessionals.socialexplorer.vaadin
 
 import _root_.java.util.Locale
 
-import com.vaadin.annotations.{Push, Theme}
+import com.vaadin.annotations.Theme
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent
 import com.vaadin.server.{ThemeResource, Page, VaadinRequest}
-import com.vaadin.shared.communication.PushMode
 import com.vaadin.shared.ui.label.ContentMode
 import com.vaadin.ui.Button.ClickEvent
-import com.vaadin.ui.MenuBar.Command
 import com.vaadin.ui._
 import com.vaadin.navigator.{Navigator, View}
-import com.vodprofessionals.socialexplorer.vaadin.views.{SettingsView, ReportsView, DashboardView}
+import com.vodprofessionals.socialexplorer.vaadin.views._
 import scala.collection.JavaConversions._
 
 /**
@@ -25,6 +23,7 @@ class DashboardUI extends UI {
   val content = new CssLayout
   val routes = Map[String, Class[_ <: View]](
     "/dashboard"    -> classOf[DashboardView],
+//    "/terms"        -> classOf[TermsView],
     "/reports"      -> classOf[ReportsView]
   )
   val nav = new Navigator(this, content)
@@ -42,8 +41,10 @@ class DashboardUI extends UI {
   }
 
   private def buildMainView = {
+    // Set up error handling
+    nav.setErrorView(classOf[ErrorView])
+
     // Set up view navigation
-    //nav.setErrorView(classOf[ErrorView])
     for ((uriFragment, viewClass) <- routes) yield nav.addView(uriFragment, viewClass)
     nav.addView("", new View() {
       override def enter(p1: ViewChangeEvent): Unit = {
@@ -76,7 +77,11 @@ class DashboardUI extends UI {
             def generateMenuItems(items: List[String]): Map[String, Button] = items match {
               case uriFragment :: xs =>
                 val b = new NativeButton(uriFragment.substring(1, 2).toUpperCase + uriFragment.substring(2).replace("-", " "))
-                b.addStyleName("icon-" + uriFragment.substring(1))
+                b.addStyleName("icon-" + (uriFragment.substring(1) match {
+                  case "dashboard" => "dashboard"
+                  case "terms" => "retweet"
+                  case "reports" => "reports"
+                }))
                 b.addClickListener(new Button.ClickListener() {
                   override def buttonClick(event: ClickEvent): Unit = {
                     for(c <- menu.iterator().toList) yield c.removeStyleName("selected")

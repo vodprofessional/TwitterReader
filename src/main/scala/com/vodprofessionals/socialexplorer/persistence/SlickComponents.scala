@@ -81,7 +81,8 @@ trait SlickComponents { this: ContextAwareRDBMSProfile =>
     def createdAt = column[Date]("createdAt", O.NotNull)
     def termType = column[SearchTermType]("term_type", O.NotNull, O.DBType("VARCHAR(30)"))
     def containerId = column[Long]("container_id", O.NotNull)
-    def * = (id.?, term, createdAt, termType, containerId) <> (SearchTerm.tupled, SearchTerm.unapply)
+    def status = column[String]("status", O.NotNull, O.DBType("VARCHAR(10)"))
+    def * = (id.?, term, createdAt, termType, containerId, status) <> (SearchTerm.tupled, SearchTerm.unapply)
   }
 
 

@@ -1,0 +1,1 @@
+$wnd.com_vodprofessionals_socialexplorer_vaadin_DashboardWidgetSet.runAsyncCallback1('p8(1025,1,Ynd);_.nc=function v$b(){KPb((!FPb&&(FPb=new LPb),FPb),this.b.e)};bcd(Vh)(1);\n//# sourceURL=com.vodprofessionals.socialexplorer.vaadin.DashboardWidgetSet-1.js\n')

@@ -439,6 +439,10 @@
 	content: "\2715";
 }
 
+.icon-retweet.v-nativebutton:before, .icon-retweet > .v-button-wrap:before, .icon-retweet.v-label:before, .v-menubar-menuitem-icon-retweet:before {
+	content: "\e717";
+}
+
 @-webkit-keyframes spinner {
 		0% {
 		background-position: 0 0;

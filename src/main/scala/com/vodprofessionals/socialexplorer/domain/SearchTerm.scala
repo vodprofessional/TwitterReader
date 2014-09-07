@@ -6,7 +6,8 @@ case class SearchTerm(id: Option[Long],
                       term: String,
                       createdAt: Date,
                       termType: SearchTermType,
-                      containerId: Long)
+                      containerId: Long,
+                      status: String = "active")
 
 sealed trait SearchTermType { val name = ""; def getName = name }
 case object StaticSearchTerm extends SearchTermType { override val name = "static" }
