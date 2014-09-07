@@ -24,7 +24,7 @@ import _root_.scala.slick.driver.JdbcProfile
 object Application extends App with LazyLogging with Configurable {
   val actorSystem    = ActorSystem("socialStreamNodeSystem")
   val processorCores = Runtime.getRuntime().availableProcessors()
-  val nrOfWorkers    = if (processorCores > 1) processorCores * 2 - 1 else 1
+  val nrOfWorkers    = if (processorCores > 1) (processorCores - 1) * 2 else 2
 
 
   try {
