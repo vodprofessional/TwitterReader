@@ -7,4 +7,10 @@ import com.typesafe.config.ConfigFactory
  */
 trait Configurable {
   lazy val CONFIG = ConfigFactory.load()
+
+  def getStringConfigOrElse(name: String, default: String) = try {
+      CONFIG.getString(name)
+    } catch {
+      case _: Throwable => default
+    }
 }

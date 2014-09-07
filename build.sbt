@@ -20,7 +20,7 @@ batScriptExtraDefines += """set _JAVA_OPTS=%_JAVA_OPTS% -Dconfig.file=%SOCIALEXP
 
 name := "socialexplorer"
 
-version := "0.0.3"
+version := "2.0.1"
 
 scalaVersion := "2.11.2"
 
@@ -39,17 +39,16 @@ libraryDependencies ++= Seq(
   "org.postgresql"             %  "postgresql"                  % "9.3-1102-jdbc4",
   "mysql"                      %  "mysql-connector-java"        % "5.1.31",
   "com.h2database"             %  "h2"                          % "1.3.148"           % Test,
-  "javax.websocket"            %  "javax.websocket-api"         % "1.0",
+//  "javax.websocket"            %  "javax.websocket-api"         % "1.0",
   "javax.servlet"              %  "javax.servlet-api"           % "3.1.0"             % "provided",
   "org.eclipse.jetty"          %  "jetty-server"                % "9.2.2.v20140723",
-  "org.eclipse.jetty.websocket"%  "javax-websocket-server-impl" % "9.2.2.v20140723",
+//  "org.eclipse.jetty.websocket"%  "javax-websocket-server-impl" % "9.2.2.v20140723",
   "org.eclipse.jetty"          %  "jetty-webapp"                % "9.2.2.v20140723",
   "org.eclipse.jetty"          %  "jetty-servlet"               % "9.2.2.v20140723",
   "com.vaadin"                 %  "vaadin-server"               % "7.2.5",
   "com.vaadin"                 %  "vaadin-client-compiled"      % "7.2.5",
   "com.vaadin"                 %  "vaadin-themes"               % "7.2.5"             % Compile,
-  "com.vaadin"                 %  "vaadin-client-compiler"      % "7.2.5"             % Compile,
-  "com.vaadin"                 %  "vaadin-push"                 % "7.2.5"
+  "com.vaadin"                 %  "vaadin-client-compiler"      % "7.2.5"             % Compile
 )
 
 vaadinSettings

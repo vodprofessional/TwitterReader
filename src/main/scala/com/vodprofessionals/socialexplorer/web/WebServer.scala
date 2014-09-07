@@ -7,7 +7,6 @@ import org.eclipse.jetty.security.{ConstraintSecurityHandler, ConstraintMapping,
 import org.eclipse.jetty.server.{Server, ServerConnector}
 import org.eclipse.jetty.servlet.{ServletHolder, ServletContextHandler}
 import org.eclipse.jetty.util.security.{Constraint, Credential}
-import org.eclipse.jetty.websocket.jsr356.server.deploy.WebSocketServerContainerInitializer
 
 /**
  *
@@ -21,18 +20,14 @@ class WebServer extends LazyLogging with Configurable {
     val servletHolder  = new ServletHolder(new com.vaadin.server.VaadinServlet());
     servletHolder.setAsyncSupported(true);
     for ((key, value) <- Map(
-      "pushmode"                        -> "automatic",
-      "productionMode"                  -> "false",
+      "productionMode"                  -> getStringConfigOrElse("web.vaadin.productionMode", "true"),
       "UI"                              -> "com.vodprofessionals.socialexplorer.vaadin.DashboardUI",
       "widgetset"                       -> "com.vodprofessionals.socialexplorer.vaadin.DashboardWidgetSet",
-      "UIProvider"                      -> "com.vodprofessionals.socialexplorer.vaadin.DashboardUIProvider",
-      "org.atmosphere.cpr.asyncSupport" -> "org.atmosphere.container.JSR356AsyncSupport"))
+      "UIProvider"                      -> "com.vodprofessionals.socialexplorer.vaadin.DashboardUIProvider"))
     yield servletHolder.setInitParameter(key, value)
 
     context.setContextPath("/")
-    //context.setResourceBase(this.getClass().getClassLoader().getResource("webapp/").toExternalForm())
     context.addServlet(servletHolder, "/*")
-    context.addEventListener(new org.atmosphere.cpr.SessionSupport)
 
     val securityUser = CONFIG.getString("web.security.user")
     val securityPassword = CONFIG.getString("web.security.password")
@@ -56,7 +51,7 @@ class WebServer extends LazyLogging with Configurable {
     csh.addConstraintMapping(cm)
     csh.setLoginService(loginService)
 
-    //context.setSecurityHandler(csh)
+    context.setSecurityHandler(csh)
   } catch {
     case ex: Throwable => logger.error("ERROR STARTING WEB SERVER: " + ex.getMessage, ex)
   }
@@ -71,7 +66,6 @@ class WebServer extends LazyLogging with Configurable {
     httpConnector.setPort(port)
     server.addConnector(httpConnector)
     server.setHandler(context)
-    WebSocketServerContainerInitializer.configureContext( context );
     server.start
     logger.info("Web server started")
   }

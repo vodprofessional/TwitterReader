@@ -17,7 +17,6 @@ import scala.collection.JavaConversions._
 /**
  *
  */
-@Push(PushMode.AUTOMATIC)
 @Theme("dashboard")
 @SerialVersionUID(1L)
 class DashboardUI extends UI {
