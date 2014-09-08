@@ -9,9 +9,24 @@ import scala.collection.immutable.List
  *
  */
 object SearchTerms extends Configurable with LazyLogging {
-  var terms: List[String] = List()
-  var termsChangeCallbacks: List[List[String] => Unit] = List()
+  var terms: Set[String] = Set()
+  var dirtyTerms: Set[String] = Set()
+  var termsChangeCallbacks: Set[Set[String] => Unit] = Set()
+  var isDirty = false
 
+
+  /**
+   * Commits the dirty terms to the active terms
+   *
+   * @return
+   */
+  def commitDirty = {
+    if (isDirty) {
+      terms = dirtyTerms
+      isDirty = false
+      for {callback <- termsChangeCallbacks} yield callback(terms)
+    }
+  }
 
   /**
    * Add a term to search for in the input
@@ -19,8 +34,7 @@ object SearchTerms extends Configurable with LazyLogging {
    * @param term
    */
   def addTerm(term: String) = {
-    term :: terms
-    for {callback <- termsChangeCallbacks} yield callback(terms)
+    addTerms(Set(term))
   }
 
   /**
@@ -29,20 +43,37 @@ object SearchTerms extends Configurable with LazyLogging {
    * @param termList
    * @return
    */
-  def addTerms(termList: List[String]) = {
-    terms = termList ++ terms
-    for {callback <- termsChangeCallbacks} yield callback(terms)
+  def addTerms(termList: Set[String]) = {
+    if (!isDirty) {
+      dirtyTerms = terms.toSet[String]
+    }
+    isDirty = true
+
+    dirtyTerms = dirtyTerms ++ termList
   }
 
   /**
-   * Remove a term from the actual list of terms to search for
+   * Remove a term from the search terms
    *
    * @param term
-   * @return
    */
   def removeTerm(term: String) = {
-    terms diff List(term)
-    for {callback <- termsChangeCallbacks} yield callback(terms)
+    removeTerms(Set(term))
+  }
+
+  /**
+   * Remove terms from the actual list of terms to search for
+   *
+   * @param terms
+   * @return
+   */
+  def removeTerms(terms: Set[String]) = {
+    if (!isDirty) {
+      dirtyTerms = terms.toSet[String]
+    }
+    isDirty = true
+
+    dirtyTerms = dirtyTerms diff terms
   }
 
   /**
@@ -50,7 +81,17 @@ object SearchTerms extends Configurable with LazyLogging {
    *
    * @return
    */
-  def getTerms = terms
+  def getActiveTerms = terms
+
+  /**
+   * Reset the terms list and replace it with the new list of terms
+   *
+   * @param t
+   */
+  def replaceTerms(t: Set[String]): Unit = {
+    isDirty = true
+    dirtyTerms = t
+  }
 
   /**
     * Match the term list against the text
@@ -65,11 +106,11 @@ object SearchTerms extends Configurable with LazyLogging {
   }
 
   /**
-   * Add a callback when the terms chage
+   * Add a callback when the terms change
    *
    * @param callback
    */
-  def addCallback(callback: List[String] => Unit) = {
-    callback :: termsChangeCallbacks
+  def addCallback(callback: Set[String] => Unit) = {
+    termsChangeCallbacks = termsChangeCallbacks + callback
   }
 }

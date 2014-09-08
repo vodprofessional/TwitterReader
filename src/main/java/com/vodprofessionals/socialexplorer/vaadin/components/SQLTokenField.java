@@ -1,9 +1,11 @@
 package com.vodprofessionals.socialexplorer.vaadin.components;
 
+import akka.actor.ActorRef;
 import com.vaadin.data.Item;
 import com.vaadin.data.util.filter.And;
 import com.vaadin.data.util.filter.Compare;
 import com.vaadin.data.util.sqlcontainer.SQLContainer;
+import com.vodprofessionals.socialexplorer.akka.SearchTermsActor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vaadin.tokenfield.TokenField;
@@ -19,12 +21,14 @@ public class SQLTokenField extends TokenField {
     SQLContainer termsContainer;
     String termType;
     Object containerId;
+    ActorRef searchTermActor;
 
 
-    public SQLTokenField(SQLContainer termsContainer, String termType, Object containerId) {
+    public SQLTokenField(SQLContainer termsContainer, String termType, Object containerId, ActorRef searchTermActor) {
         this.termsContainer = termsContainer;
         this.termType = termType;
         this.containerId = containerId;
+        this.searchTermActor = searchTermActor;
     }
 
     @Override
@@ -38,6 +42,8 @@ public class SQLTokenField extends TokenField {
         } catch (SQLException e) {
             logger.error("Failed to deactivate term '" + tokenId + "'", e);
         }
+
+        searchTermActor.tell(new SearchTermsActor.RemoveSearchTerm(tokenId.toString()), null);
 
         this.removeToken(tokenId);
     }
@@ -64,6 +70,8 @@ public class SQLTokenField extends TokenField {
         } catch (SQLException e) {
             logger.error("Failed to activate term '" + tokenId + "'", e);
         }
+
+        searchTermActor.tell(new SearchTermsActor.AddSearchTerm(tokenId.toString()), null);
 
         this.addToken(tokenId);
     }

@@ -59,9 +59,12 @@ object Application extends App with LazyLogging with Configurable {
         createTables(session)
       }
 
-      def getSearchTerms(): List[String] =
+      def getSearchTerms(): Set[String] =
         DB withSession { implicit session: Session =>
-          TableQuery[SearchTerms].groupBy(t => t.term).map{ case (term, group) => (term) }.run.toList
+          TableQuery[SearchTerms]
+            .filter(_.status === "active")
+            .groupBy(t => t.term)
+            .map{ case (term, group) => (term) }.run.toSet
         }
     }
     val terms = (new DAL(ContextAwareRDBMSDriver.driver)).getSearchTerms
@@ -78,7 +81,8 @@ object Application extends App with LazyLogging with Configurable {
     )
 
     if(!terms.isEmpty) {
-      SearchTerms.addTerms(terms)
+      SearchTerms.replaceTerms(terms)
+      SearchTerms.commitDirty
       logger.info("Starting with terms: " + terms.toString);
       actorSystem.actorOf(Props(new TwitterCollectorActor(twitterCollector))) ! TwitterCollectorActor.StartTwitterCollector
     }

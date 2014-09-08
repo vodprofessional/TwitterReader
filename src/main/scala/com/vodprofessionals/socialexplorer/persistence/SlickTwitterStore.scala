@@ -56,7 +56,9 @@ class SlickTwitterStore (
               case _ => logger.error("Database Error: " + sqlException.getMessage + " SQLSTATE: " + sqlStateCode)
             }
             case sqlStateCode: String => sqlException.getErrorCode match {
-              case 1366 => logger.warn("Cannot convert tweet text to MySQl UTF8")
+              case 1366 => {
+                //logger.warn("Cannot convert tweet text to MySQl UTF8")
+              }
               case _ => logger.error("Database Error: " + sqlException.getMessage + " ERRORCODE: " + sqlException.getErrorCode)
             }
             case _ => logger.error("Database Error: " + sqlException.getMessage + " ERRORCODE: " + sqlException.getErrorCode)

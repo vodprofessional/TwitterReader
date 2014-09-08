@@ -38,7 +38,7 @@ trait SlickComponents { this: ContextAwareRDBMSProfile =>
 
   class Tweets(tag: Tag) extends Table[Tweet](tag, "tweets") {
     def id = column[Long]("id", O.PrimaryKey, O.AutoInc)
-    def text = column[String]("text", O.NotNull, O.DBType("VARCHAR(150)"))
+    def text = column[String]("text", O.NotNull, O.DBType("VARCHAR(400)"))
     def term = column[String]("term", O.NotNull, O.DBType("VARCHAR(150)"))
     def tweetedAt = column[Date]("tweetedAt", O.NotNull)
     def tweetId = column[Long]("tweetId", O.NotNull)

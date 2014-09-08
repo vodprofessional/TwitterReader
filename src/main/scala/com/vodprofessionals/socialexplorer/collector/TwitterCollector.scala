@@ -1,5 +1,6 @@
 package com.vodprofessionals.socialexplorer.collector
 
+import com.twitter.hbc.httpclient.BasicClient
 import com.typesafe.scalalogging.LazyLogging
 import com.vodprofessionals.socialexplorer.config.Configurable
 import com.vodprofessionals.socialexplorer.model.SearchTerms
@@ -23,27 +24,29 @@ class TwitterCollector (
       val processor:      String => Boolean
                        ) extends LazyLogging with Configurable {
 
-  val endpoint = new StatusesFilterEndpoint
-  val twitter = (new ClientBuilder)
-    .hosts(Constants.STREAM_HOST)
-    .endpoint(endpoint)
-    .authentication(new OAuth1(consumerKey, consumerSecret, tokenKey, tokenSecret))
-    .processor(new StringDelimitedProcessor(null) {
-
-      override def process: Boolean =
-        processor(
-          Stream.cons(processNextMessage, Stream.continually(processNextMessage)).dropWhile(_ == null).head
-        )
-
-    })
-    .build
+  var twitter: BasicClient = null
 
 
   /**
    *
    */
   def start = {
-    endpoint.trackTerms(SearchTerms.getTerms.asJava)
+    logger.info(SearchTerms.getActiveTerms.toList.asJava.toString)
+    val endpoint = new StatusesFilterEndpoint
+    twitter = (new ClientBuilder)
+      .hosts(Constants.STREAM_HOST)
+      .endpoint(endpoint)
+      .authentication(new OAuth1(consumerKey, consumerSecret, tokenKey, tokenSecret))
+      .processor(new StringDelimitedProcessor(null) {
+
+      override def process: Boolean =
+        processor(
+          Stream.cons(processNextMessage, Stream.continually(processNextMessage)).dropWhile(_ == null).head
+        )
+
+      })
+      .build
+    endpoint.trackTerms(SearchTerms.getActiveTerms.toList.asJava)
     twitter.connect
   }
 
@@ -52,5 +55,8 @@ class TwitterCollector (
    *
    */
   def stop =
-    twitter.stop()
+    if (null != twitter)
+      twitter.stop()
+
+
 }

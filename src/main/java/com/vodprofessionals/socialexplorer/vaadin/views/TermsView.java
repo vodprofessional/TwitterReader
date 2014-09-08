@@ -1,5 +1,8 @@
 package com.vodprofessionals.socialexplorer.vaadin.views;
 
+import akka.actor.ActorRef;
+import akka.actor.ActorSystem;
+import akka.actor.Props;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import com.vaadin.data.Item;
@@ -13,6 +16,8 @@ import com.vaadin.data.util.sqlcontainer.query.TableQuery;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.ui.*;
+import com.vodprofessionals.socialexplorer.Application;
+import com.vodprofessionals.socialexplorer.akka.SearchTermsActor;
 import com.vodprofessionals.socialexplorer.vaadin.components.SQLTokenField;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -142,7 +147,7 @@ public class TermsView extends VerticalLayout implements View {
 
             final SQLContainer termsContainer = new SQLContainer(new TableQuery("search_terms", connPool));
             final SQLContainer dynamicServicesContainer = new SQLContainer(new TableQuery("services", connPool));
-
+            final ActorRef searchTermsActor = Application.actorSystem().actorOf(Props.create(SearchTermsActor.class));
 
             servicesContainer = new SQLContainer(new TableQuery("services", connPool));
             servicesTable.setContainerDataSource(servicesContainer);
@@ -159,7 +164,7 @@ public class TermsView extends VerticalLayout implements View {
                         t.add(termsContainer.getItem(it.next()).getItemProperty("term").getValue());
                     }
 
-                    SQLTokenField tokenField = new SQLTokenField(termsContainer, "static", dynaId);
+                    SQLTokenField tokenField = new SQLTokenField(termsContainer, "static", dynaId, searchTermsActor);
                     tokenField.setRememberNewTokens(true);
                     tokenField.setValue(t);
 
@@ -196,7 +201,7 @@ public class TermsView extends VerticalLayout implements View {
                         t.add(dynamicTermsContainer.getItem(it.next()).getItemProperty("term").getValue());
                     }
 
-                    SQLTokenField tokenField = new SQLTokenField(termsContainer, "dynamic", dynaId);
+                    SQLTokenField tokenField = new SQLTokenField(termsContainer, "dynamic", dynaId, searchTermsActor);
                     tokenField.setRememberNewTokens(true);
                     tokenField.setValue(t);
 
