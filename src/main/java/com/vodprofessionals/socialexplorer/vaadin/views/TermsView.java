@@ -3,6 +3,7 @@ package com.vodprofessionals.socialexplorer.vaadin.views;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import com.vaadin.data.Item;
+import com.vaadin.data.Property;
 import com.vaadin.data.util.IndexedContainer;
 import com.vaadin.data.util.filter.And;
 import com.vaadin.data.util.filter.Compare;
@@ -12,15 +13,14 @@ import com.vaadin.data.util.sqlcontainer.query.TableQuery;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.ui.*;
+import com.vodprofessionals.socialexplorer.vaadin.components.SQLTokenField;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vaadin.tokenfield.TokenField;
 
 import java.sql.SQLException;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Set;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 
 /**
@@ -149,7 +149,7 @@ public class TermsView extends VerticalLayout implements View {
             servicesTable.addGeneratedColumn("Terms", new Table.ColumnGenerator() {
                 @Override
                 public Object generateCell(Table source, Object itemId, Object columnId) {
-                    Object dynaId = source.getItem(itemId).getItemProperty("id").getValue();
+                    final Object dynaId = source.getItem(itemId).getItemProperty("id").getValue();
                     termsContainer.removeAllContainerFilters();
                     termsContainer.addContainerFilter(new And(new Compare.Equal("container_id", dynaId), new Compare.Equal("term_type", "static"), new Compare.Equal("status", "active")));
 
@@ -159,7 +159,8 @@ public class TermsView extends VerticalLayout implements View {
                         t.add(termsContainer.getItem(it.next()).getItemProperty("term").getValue());
                     }
 
-                    TokenField tokenField = new TokenField();
+                    SQLTokenField tokenField = new SQLTokenField(termsContainer, "static", dynaId);
+                    tokenField.setRememberNewTokens(true);
                     tokenField.setValue(t);
 
                     return tokenField;
@@ -169,9 +170,7 @@ public class TermsView extends VerticalLayout implements View {
 
 
             dynamicContainer = new SQLContainer(new TableQuery("service_extras", connPool));
-            dynamicContainer.addReference(servicesContainer, "service_id", "id");
             dynamicTable.setContainerDataSource(dynamicContainer);
-
             dynamicTable.addGeneratedColumn("Service", new Table.ColumnGenerator() {
                 @Override
                 public Object generateCell(Table source, Object itemId, Object columnId) {
@@ -197,7 +196,8 @@ public class TermsView extends VerticalLayout implements View {
                         t.add(dynamicTermsContainer.getItem(it.next()).getItemProperty("term").getValue());
                     }
 
-                    TokenField tokenField = new TokenField();
+                    SQLTokenField tokenField = new SQLTokenField(termsContainer, "dynamic", dynaId);
+                    tokenField.setRememberNewTokens(true);
                     tokenField.setValue(t);
 
                     return tokenField;
