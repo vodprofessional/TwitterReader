@@ -81,7 +81,7 @@ object Application extends App with LazyLogging with Configurable {
 
     if(!terms.isEmpty) {
       SearchTerms.addTerms(terms)
-      actorSystem.actorOf(Props(new TwitterCollectorActor(twitterCollector))) ! TwitterCollectorActor.StartTwitterCollector
+      //actorSystem.actorOf(Props(new TwitterCollectorActor(twitterCollector))) ! TwitterCollectorActor.StartTwitterCollector
     }
     else
       logger.warn("No search terms defined so not starting collector")

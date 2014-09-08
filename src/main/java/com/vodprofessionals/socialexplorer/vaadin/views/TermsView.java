@@ -1,125 +1,213 @@
 package com.vodprofessionals.socialexplorer.vaadin.views;
 
-import com.vaadin.event.ItemClickEvent;
+import com.typesafe.config.Config;
+import com.typesafe.config.ConfigFactory;
+import com.vaadin.data.Item;
+import com.vaadin.data.util.IndexedContainer;
+import com.vaadin.data.util.filter.And;
+import com.vaadin.data.util.filter.Compare;
+import com.vaadin.data.util.sqlcontainer.SQLContainer;
+import com.vaadin.data.util.sqlcontainer.connection.SimpleJDBCConnectionPool;
+import com.vaadin.data.util.sqlcontainer.query.TableQuery;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.ui.*;
-import com.vodprofessionals.socialexplorer.vaadin.container.ServiceContainer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.vaadin.tokenfield.TokenField;
 
-import java.util.LinkedList;
-import java.util.List;
+import java.sql.SQLException;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
+
 
 /**
  *
  */
 public class TermsView extends VerticalLayout implements View {
+    Logger logger = LoggerFactory.getLogger(TermsView.class);
+    SQLContainer servicesContainer;
+    SQLContainer dynamicContainer;
+    Table servicesTable = new Table();
+    Table dynamicTable = new Table();
 
     public TermsView() {
-        UI.getCurrent().getPage().setTitle("Social Explorer Terms Management");
+        UI.getCurrent().getPage().setTitle("Twitter Collector Terms Management");
 
         setSizeFull();
-        addStyleName("dashboard-view");
+        addStyleName("transactions");
 
-        VerticalLayout page = new VerticalLayout();
 
-        // Header piece
+        // SERVICES HEADER
+        HorizontalLayout servicesHeader = new HorizontalLayout();
+        servicesHeader.setWidth("100%");
+        servicesHeader.setSpacing(true);
+        servicesHeader.addStyleName("toolbar");
+        addComponent(servicesHeader);
+
         {
-            HorizontalLayout viewHeader = new HorizontalLayout();
-            viewHeader.setWidth("100%");
-            viewHeader.setSpacing(true);
-            viewHeader.addStyleName("toolbar");
-            page.addComponent(viewHeader);
-
-            Label title = new Label("Manage Services and Terms");
+            final Label title = new Label("Manage Services");
             title.setSizeUndefined();
             title.addStyleName("h1");
-            viewHeader.addComponent(title);
-            setComponentAlignment(title, Alignment.MIDDLE_LEFT);
-            setExpandRatio(title, 1);
+            servicesHeader.addComponent(title);
+            servicesHeader.setComponentAlignment(title, Alignment.MIDDLE_LEFT);
+            servicesHeader.setExpandRatio(title, 1);
+
+            Button edit = new Button();
+            edit.addStyleName("icon-edit");
+            edit.addStyleName("icon-only");
+            servicesHeader.addComponent(edit);
+            edit.setDescription("Add new Service");
+            edit.addClickListener(new Button.ClickListener() {
+                @Override
+                public void buttonClick(Button.ClickEvent clickEvent) {
+                    // TODO Implement
+                }
+            });
+            servicesHeader.setComponentAlignment(edit, Alignment.MIDDLE_LEFT);
         }
+
+        // CONTAINER SERVICES
+        HorizontalLayout servicesPanel = new HorizontalLayout();
+        servicesPanel.setWidth("100%");
+        servicesPanel.setSpacing(false);
+        addComponent(servicesPanel);
+        setExpandRatio(servicesPanel, 1);
 
         {
-            VerticalLayout servicesLayout = new VerticalLayout();
+            servicesTable = new Table();
+            servicesTable.setSizeFull();
+            servicesTable.addStyleName("borderless");
+            servicesTable.setSelectable(true);
 
-            Object editedItemId;
-            ServiceContainer serviceContainer = new ServiceContainer();
-            List servicesTerms = new LinkedList<String>();
-            TextField serviceName = new TextField("Service name");
-            TokenField serviceTerms = new TokenField("Service terms");
-            Table servicesTable = new Table();
-
-            {
-                HorizontalLayout viewHeader = new HorizontalLayout();
-                viewHeader.setWidth("100%");
-                viewHeader.setSpacing(true);
-                viewHeader.addStyleName("toolbar");
-
-                {
-                    Label title = new Label("Services");
-                    title.setSizeUndefined();
-                    title.addStyleName("h2");
-                    viewHeader.addComponent(title);
-                    setComponentAlignment(title, Alignment.MIDDLE_LEFT);
-                    setExpandRatio(title, 1);
-
-                    Button newButton = new Button("Add New Service");
-                    newButton.addStyleName("small");
-                    newButton.addStyleName("default");
-                    newButton.addClickListener((Button.ClickEvent event) -> {
-                        // TODO Implement!
-                    });
-                    viewHeader.addComponent(newButton);
-                }
-                servicesLayout.addComponent(viewHeader);
-            }
-
-            {
-                HorizontalLayout l = new HorizontalLayout();
-                l.setWidth("100%");
-                l.setSpacing(true);
-
-                {
-                    servicesTable.setSizeFull();
-                    servicesTable.addStyleName("borderless");
-                    servicesTable.setWidth("400px");
-                    servicesTable.setHeight("100%");
-                    servicesTable.setSelectable(true);
-                    servicesTable.setMultiSelect(false);
-                    servicesTable.setImmediate(true);
-                    servicesTable.setContainerDataSource(serviceContainer);
-                    servicesTable.addItemClickListener((ItemClickEvent event) -> {
-                        // TODO Implement
-                    });
-                    l.addComponent(servicesTable);
-                }
-
-                {
-                    l.addComponent(serviceName);
-                    l.addComponent(serviceTerms);
-
-                    Button save = new Button("Save");
-                    save.addClickListener((Button.ClickEvent event) -> {
-                        // TODO Implement Save
-                    });
-                    l.addComponent(save);
-                }
-
-                servicesLayout.addComponent(l);
-            }
-
-            page.addComponent(servicesLayout);
+            servicesPanel.addComponent(servicesTable);
         }
 
+        // DYNAMIC HEADER
+        HorizontalLayout dynamicHeader = new HorizontalLayout();
+        dynamicHeader.setWidth("100%");
+        dynamicHeader.setSpacing(true);
+        dynamicHeader.addStyleName("toolbar");
+        addComponent(dynamicHeader);
 
-        page.setSizeFull();
-        page.setWidth("100%");
-        addComponent(page);
+        {
+            final Label title = new Label("Manage Dynamic Terms");
+            title.setSizeUndefined();
+            title.addStyleName("h1");
+            dynamicHeader.addComponent(title);
+            dynamicHeader.setComponentAlignment(title, Alignment.MIDDLE_LEFT);
+            dynamicHeader.setExpandRatio(title, 1);
 
+            Button editTerms = new Button();
+            editTerms.addStyleName("icon-edit");
+            editTerms.addStyleName("icon-only");
+            dynamicHeader.addComponent(editTerms);
+            editTerms.setDescription("Add new dynamic term");
+            editTerms.addClickListener(new Button.ClickListener() {
+                @Override
+                public void buttonClick(Button.ClickEvent clickEvent) {
+                    // TODO Implement
+                }
+            });
+            dynamicHeader.setComponentAlignment(editTerms, Alignment.MIDDLE_LEFT);
+        }
+
+        // CONTAINER DYNAMIC
+        HorizontalLayout dynamicPanel = new HorizontalLayout();
+        dynamicPanel.setWidth("100%");
+        dynamicPanel.setSpacing(false);
+        addComponent(dynamicPanel);
+        setExpandRatio(dynamicPanel, 1);
+
+        {
+            dynamicTable = new Table();
+            dynamicTable.setSizeFull();
+            dynamicTable.addStyleName("borderless");
+            dynamicTable.setSelectable(true);
+            dynamicPanel.addComponent(dynamicTable);
+        }
     }
 
     @Override
     public void enter(ViewChangeListener.ViewChangeEvent viewChangeEvent) {
+        try {
+            Config c = ConfigFactory.load();
+            SimpleJDBCConnectionPool connPool = new SimpleJDBCConnectionPool(
+                    c.getString("database.driver"),
+                    c.getString("database.url"),
+                    c.getString("database.username"),
+                    c.getString("database.password"));
 
+            final SQLContainer termsContainer = new SQLContainer(new TableQuery("search_terms", connPool));
+            final SQLContainer dynamicServicesContainer = new SQLContainer(new TableQuery("services", connPool));
+
+
+            servicesContainer = new SQLContainer(new TableQuery("services", connPool));
+            servicesTable.setContainerDataSource(servicesContainer);
+            servicesTable.addGeneratedColumn("Terms", new Table.ColumnGenerator() {
+                @Override
+                public Object generateCell(Table source, Object itemId, Object columnId) {
+                    Object dynaId = source.getItem(itemId).getItemProperty("id").getValue();
+                    termsContainer.removeAllContainerFilters();
+                    termsContainer.addContainerFilter(new And(new Compare.Equal("container_id", dynaId), new Compare.Equal("term_type", "static"), new Compare.Equal("status", "active")));
+
+                    Collection<?> terms = termsContainer.getItemIds();
+                    Set<Object> t = new HashSet<>();
+                    for (Iterator<?> it = terms.iterator(); it.hasNext();) {
+                        t.add(termsContainer.getItem(it.next()).getItemProperty("term").getValue());
+                    }
+
+                    TokenField tokenField = new TokenField();
+                    tokenField.setValue(t);
+
+                    return tokenField;
+                }
+            });
+            servicesTable.setVisibleColumns(new Object[]{ "name", "Terms" });
+
+
+            dynamicContainer = new SQLContainer(new TableQuery("service_extras", connPool));
+            dynamicContainer.addReference(servicesContainer, "service_id", "id");
+            dynamicTable.setContainerDataSource(dynamicContainer);
+
+            dynamicTable.addGeneratedColumn("Service", new Table.ColumnGenerator() {
+                @Override
+                public Object generateCell(Table source, Object itemId, Object columnId) {
+                    Object serviceId = source.getItem(itemId).getItemProperty("service_id").getValue();
+                    dynamicServicesContainer.removeAllContainerFilters();
+                    dynamicServicesContainer.addContainerFilter(new Compare.Equal("id", serviceId));
+                    Item i = dynamicServicesContainer.getItem(dynamicServicesContainer.firstItemId());
+
+                    return i.getItemProperty("name").getValue();
+                }
+            });
+            final SQLContainer dynamicTermsContainer = new SQLContainer(new TableQuery("search_terms", connPool));
+            dynamicTable.addGeneratedColumn("Terms", new Table.ColumnGenerator() {
+                @Override
+                public Object generateCell(Table source, Object itemId, Object columnId) {
+                    Object dynaId = source.getItem(itemId).getItemProperty("id").getValue();
+                    dynamicTermsContainer.removeAllContainerFilters();
+                    dynamicTermsContainer.addContainerFilter(new And(new Compare.Equal("container_id", dynaId), new Compare.Equal("term_type", "dynamic"), new Compare.Equal("status", "active")));
+
+                    Collection<?> terms = dynamicTermsContainer.getItemIds();
+                    Set<Object> t = new HashSet<>();
+                    for (Iterator<?> it = terms.iterator(); it.hasNext();) {
+                        t.add(dynamicTermsContainer.getItem(it.next()).getItemProperty("term").getValue());
+                    }
+
+                    TokenField tokenField = new TokenField();
+                    tokenField.setValue(t);
+
+                    return tokenField;
+                }
+            });
+            dynamicTable.setVisibleColumns(new Object[] { "name", "tx_datetime", "channel", "Service", "Terms" });
+        } catch (SQLException e) {
+            logger.error("Error trying to connect to database from web interface", e);
+            servicesTable.setContainerDataSource(new IndexedContainer());
+            dynamicTable.setContainerDataSource(new IndexedContainer());
+        }
     }
 }

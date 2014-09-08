@@ -21,7 +21,7 @@ class WebServer extends LazyLogging with Configurable {
     servletHolder.setAsyncSupported(true);
     for ((key, value) <- Map(
       "productionMode"                  -> getStringConfigOrElse("web.vaadin.productionMode", "true"),
-      "UI"                              -> "com.vodprofessionals.socialexplorer.vaadin.DashboardUI",
+//      "UI"                              -> "com.vodprofessionals.socialexplorer.vaadin.DashboardUI",
       "widgetset"                       -> "com.vodprofessionals.socialexplorer.vaadin.DashboardWidgetSet",
       "UIProvider"                      -> "com.vodprofessionals.socialexplorer.vaadin.DashboardUIProvider"))
     yield servletHolder.setInitParameter(key, value)
