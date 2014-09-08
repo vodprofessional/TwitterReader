@@ -88,6 +88,8 @@ object Application extends App with LazyLogging with Configurable {
     }
     else
       logger.warn("No search terms defined so not starting collector")
+
+    actorSystem.actorOf(Props(new SearchTermsActor()))
   } catch {
     case ex: Throwable => logger.error(ex.getMessage, ex)
   }
