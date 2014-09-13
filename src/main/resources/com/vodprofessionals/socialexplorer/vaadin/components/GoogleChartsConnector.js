@@ -37,6 +37,7 @@ com_vodprofessionals_socialexplorer_vaadin_components_GoogleCharts = function ()
      * Draw the actual chart with Google Charts
      */
     function drawChart() {
+        console.log(dataTable);
         // Create the data table.
         var data = google.visualization.arrayToDataTable(dataTable);
 

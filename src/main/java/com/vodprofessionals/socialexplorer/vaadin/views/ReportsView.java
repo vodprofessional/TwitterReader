@@ -1,5 +1,6 @@
 package com.vodprofessionals.socialexplorer.vaadin.views;
 
+import com.ibm.icu.util.Calendar;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.ui.Component;
@@ -40,8 +41,8 @@ public class ReportsView extends VerticalLayout implements View {
 
         final VerticalLayout center = new VerticalLayout();
         center.setSizeFull();
-        center.setCaption("Tweets in past 6 days");
-        List<List<Object>> data = (new Reports(ContextAwareRDBMSDriver.driver())).numTweets();
+        center.setCaption("Tweets in past 3 months");
+        List<List<Object>> data = (new Reports(ContextAwareRDBMSDriver.driver())).numTweets(-7, Calendar.DAY_OF_YEAR);
         center.addComponent(buildChart(data));
         editors.addComponent(center);
 
