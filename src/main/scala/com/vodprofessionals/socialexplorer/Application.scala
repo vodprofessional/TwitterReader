@@ -8,7 +8,7 @@ import com.typesafe.scalalogging.LazyLogging
 import com.vodprofessionals.socialexplorer.akka._
 import com.vodprofessionals.socialexplorer.config.Configurable
 import com.vodprofessionals.socialexplorer.domain.{Tweeter, Tweet}
-import com.vodprofessionals.socialexplorer.model.SearchTerms
+import com.vodprofessionals.socialexplorer.model.{Reports, SearchTerms}
 import com.vodprofessionals.socialexplorer.persistence.{ContextAwareRDBMSDriver, ContextAwareRDBMSProfile, SlickComponents, SlickTwitterStore}
 import com.vodprofessionals.socialexplorer.processor.TwitterProcessor
 import com.vodprofessionals.socialexplorer.web.WebServer
@@ -83,7 +83,6 @@ object Application extends App with LazyLogging with Configurable {
     if(!terms.isEmpty) {
       SearchTerms.replaceTerms(terms)
       SearchTerms.commitDirty
-      logger.info("Starting with terms: " + terms.toString);
       actorSystem.actorOf(Props(new TwitterCollectorActor(twitterCollector))) ! TwitterCollectorActor.StartTwitterCollector
     }
     else

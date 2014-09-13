@@ -43,7 +43,8 @@ public class GoogleCharts extends AbstractJavaScriptComponent {
 
     public enum Type {
         BARCHART("google.visualization.BarChart"),
-        PIECHART("google.visualization.PieChart");
+        PIECHART("google.visualization.PieChart"),
+        LINECHART("google.visualization.LineChart");
 
 
         private final String jsChartClass;

@@ -5,7 +5,11 @@ import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.VerticalLayout;
+import com.vodprofessionals.socialexplorer.model.Reports;
+import com.vodprofessionals.socialexplorer.persistence.ContextAwareRDBMSDriver;
 import com.vodprofessionals.socialexplorer.vaadin.components.GoogleCharts;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -16,7 +20,9 @@ import java.util.Map;
  *
  */
 public class ReportsView extends VerticalLayout implements View {
+    Logger logger = LoggerFactory.getLogger(TermsView.class);
     private TabSheet editors;
+
 
     @Override
     public void enter(ViewChangeListener.ViewChangeEvent event) {
@@ -35,41 +41,32 @@ public class ReportsView extends VerticalLayout implements View {
         final VerticalLayout center = new VerticalLayout();
         center.setSizeFull();
         center.setCaption("Tweets in past 6 days");
-        center.addComponent(buildChart());
+        List<List<Object>> data = (new Reports(ContextAwareRDBMSDriver.driver())).numTweets();
+        center.addComponent(buildChart(data));
         editors.addComponent(center);
 
         return editors;
     }
 
-    private Component buildChart() {
+    private Component buildChart(List<List<Object>> dataTable) {
         VerticalLayout content = new VerticalLayout();
-
-        List<List<Object>> dataTable = new LinkedList<List<Object>>();
-        List<Object> a = new LinkedList<Object>();
-
-        a.add("ColA");
-        a.add("ColB");
-        dataTable.add(a);
-
-        a = new LinkedList<Object>();
-        a.add("Item1");
-        a.add(13);
-        dataTable.add(a);
-
-        a = new LinkedList<Object>();
-        a.add("Item2");
-        a.add(8);
-        dataTable.add(a);
 
         Map<GoogleCharts.Option, String> options = new HashMap<GoogleCharts.Option, String>();
         options.put(GoogleCharts.Option.TITLE, "The title of the chart");
 
         content.addComponent(new GoogleCharts(
-                GoogleCharts.Type.BARCHART,
+                GoogleCharts.Type.LINECHART,
                 dataTable,
                 options
         ));
 
         return content;
+    }
+
+    private List<List<Object>> getNumTweetsReportData() {
+        List<List<Object>> dataTable = new LinkedList<List<Object>>();
+
+
+        return dataTable;
     }
 }

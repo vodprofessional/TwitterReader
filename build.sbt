@@ -38,7 +38,7 @@ libraryDependencies ++= Seq(
   "ch.qos.logback"             %  "logback-classic"             % "1.1.2",
   "org.slf4j"                  %  "slf4j-api"                   % "1.7.7",
   "org.slf4j"                  %  "jul-to-slf4j"                % "1.7.7",
-  "com.typesafe.slick"         %% "slick"                       % "2.1.0-RC3",
+  "com.typesafe.slick"         %% "slick"                       % "2.1.0",
   "org.postgresql"             %  "postgresql"                  % "9.3-1102-jdbc4",
   "mysql"                      %  "mysql-connector-java"        % "5.1.31",
   "org.eclipse.jetty"          %  "jetty-servlet"               % "9.2.2.v20140723",
