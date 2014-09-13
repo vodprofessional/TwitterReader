@@ -18,6 +18,8 @@ public class GoogleCharts extends AbstractJavaScriptComponent {
     public GoogleCharts(Type chartType,
                         List<List<Object>> dataTable,
                         Map<Option, String> chartOptions) {
+        setSizeFull();
+
         GoogleChartsState state = getState();
 
         state.jsChartClass = chartType.getJsChartClass();

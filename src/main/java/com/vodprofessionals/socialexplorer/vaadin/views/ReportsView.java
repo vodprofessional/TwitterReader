@@ -42,7 +42,7 @@ public class ReportsView extends VerticalLayout implements View {
         final VerticalLayout center = new VerticalLayout();
         center.setSizeFull();
         center.setCaption("Tweets in past 3 months");
-        List<List<Object>> data = (new Reports(ContextAwareRDBMSDriver.driver())).numTweets(-7, Calendar.DAY_OF_YEAR);
+        List<List<Object>> data = (new Reports(ContextAwareRDBMSDriver.driver())).numTweets(-3, Calendar.MONTH);
         center.addComponent(buildChart(data));
         editors.addComponent(center);
 
@@ -52,8 +52,9 @@ public class ReportsView extends VerticalLayout implements View {
     private Component buildChart(List<List<Object>> dataTable) {
         VerticalLayout content = new VerticalLayout();
 
+        content.setSizeFull();
         Map<GoogleCharts.Option, String> options = new HashMap<GoogleCharts.Option, String>();
-        options.put(GoogleCharts.Option.TITLE, "The title of the chart");
+        options.put(GoogleCharts.Option.TITLE, "Tweets in past 3 months");
 
         content.addComponent(new GoogleCharts(
                 GoogleCharts.Type.LINECHART,
@@ -64,10 +65,4 @@ public class ReportsView extends VerticalLayout implements View {
         return content;
     }
 
-    private List<List<Object>> getNumTweetsReportData() {
-        List<List<Object>> dataTable = new LinkedList<List<Object>>();
-
-
-        return dataTable;
-    }
 }
