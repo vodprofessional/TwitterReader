@@ -92,5 +92,4 @@ object Application extends App with LazyLogging with Configurable {
   } catch {
     case ex: Throwable => logger.error(ex.getMessage, ex)
   }
-
 }

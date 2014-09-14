@@ -32,6 +32,7 @@ resolvers ++= Seq(
 libraryDependencies ++= Seq(
   "com.typesafe.akka"          %% "akka-actor"                  % "2.3.4",
   "org.json4s"                 %% "json4s-jackson"              % "3.2.10",
+  "com.fasterxml.jackson.core" %  "jackson-core"                % "2.3.1",
   "com.twitter"                %  "hbc-core"                    % "2.2.0",
   "com.typesafe"               %  "config"                      % "1.2.1",
   "com.typesafe.scala-logging" %% "scala-logging"               % "3.0.0",
@@ -39,6 +40,7 @@ libraryDependencies ++= Seq(
   "org.slf4j"                  %  "slf4j-api"                   % "1.7.7",
   "org.slf4j"                  %  "jul-to-slf4j"                % "1.7.7",
   "com.typesafe.slick"         %% "slick"                       % "2.1.0",
+  "org.apache.httpcomponents"  %  "httpclient"                  % "4.3.5",
   "org.postgresql"             %  "postgresql"                  % "9.3-1102-jdbc4",
   "mysql"                      %  "mysql-connector-java"        % "5.1.31",
   "org.eclipse.jetty"          %  "jetty-servlet"               % "9.2.2.v20140723",
