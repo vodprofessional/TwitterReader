@@ -6,24 +6,6 @@
         </encoder>
     </appender>
 
-    <appender name="email" class="ch.qos.logback.classic.net.SMTPAppender">
-        <smtpHost>smtp.gmail.com</smtpHost>
-        <to>tolmi@lazycat.hu</to>
-        <from>tweetcollector@vodprofessional.com</from>
-        <subject>APP ERROR: %logger{20} - %m</subject>
-        <layout class="ch.qos.logback.classic.PatternLayout">
-            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{5} - %msg%n</pattern>
-        </layout>
-    </appender>
-
-    <appender name="pushover" class="com.vodprofessionals.socialexplorer.logback.PushoverAppender">
-        <pushoverToken>aTMJygY7TFPUSE68MWxUiB8TvCpdct</pushoverToken>
-        <pushoverUser>u3YxcrqWxGvxaddB8zktyE52AQ3TWU</pushoverUser>
-        <layout class="ch.qos.logback.classic.PatternLayout">
-            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{5} - %msg%n</pattern>
-        </layout>
-    </appender>
-
     <root level="info">
         <appender-ref ref="stdout"/>
     </root>

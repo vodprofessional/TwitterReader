@@ -20,6 +20,7 @@ import com.vaadin.ui.Label;
 import com.vaadin.ui.NativeButton;
 import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
+import com.vodprofessionals.socialexplorer.model.SearchTerms;
 import com.vodprofessionals.socialexplorer.vaadin.views.DashboardView;
 import com.vodprofessionals.socialexplorer.vaadin.views.ReportsView;
 import com.vodprofessionals.socialexplorer.vaadin.views.TermsView;
@@ -134,6 +135,9 @@ public class DashboardUI extends UI {
         menu.addStyleName("menu");
         menu.setHeight("100%");
 
+        viewNameToMenuButton.get("/terms").setHtmlContentAllowed(true);
+        updateTermsBadgeCount();
+
         String f = Page.getCurrent().getUriFragment();
         if (f != null && f.startsWith("!")) {
             f = f.substring(1);
@@ -145,6 +149,11 @@ public class DashboardUI extends UI {
             nav.navigateTo(f);
             viewNameToMenuButton.get(f).addStyleName("selected");
         }
+    }
+
+    public void updateTermsBadgeCount() {
+        viewNameToMenuButton.get("/terms").setCaption(
+                "Terms<span class=\"badge\">" + SearchTerms.getTermsCount() + "</span>");
     }
 
     private void clearMenuSelection() {

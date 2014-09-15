@@ -1,30 +1,28 @@
 package com.vodprofessionals.socialexplorer.vaadin.views;
 
 import akka.actor.ActorRef;
-import akka.actor.ActorSystem;
 import akka.actor.Props;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import com.vaadin.data.Item;
-import com.vaadin.data.Property;
 import com.vaadin.data.util.IndexedContainer;
 import com.vaadin.data.util.filter.And;
 import com.vaadin.data.util.filter.Compare;
 import com.vaadin.data.util.sqlcontainer.SQLContainer;
 import com.vaadin.data.util.sqlcontainer.connection.SimpleJDBCConnectionPool;
 import com.vaadin.data.util.sqlcontainer.query.TableQuery;
+import com.vaadin.event.ShortcutAction;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.ui.*;
 import com.vodprofessionals.socialexplorer.Application;
 import com.vodprofessionals.socialexplorer.akka.SearchTermsActor;
+import com.vodprofessionals.socialexplorer.vaadin.DashboardUI;
 import com.vodprofessionals.socialexplorer.vaadin.components.SQLTokenField;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.vaadin.tokenfield.TokenField;
 
 import java.sql.SQLException;
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 
@@ -35,8 +33,12 @@ public class TermsView extends VerticalLayout implements View {
     Logger logger = LoggerFactory.getLogger(TermsView.class);
     SQLContainer servicesContainer;
     SQLContainer dynamicContainer;
+    SQLContainer dynamicServicesContainer;
     Table servicesTable = new Table();
     Table dynamicTable = new Table();
+    Window addServiceWindow;
+    Window addServiceExtraWindow;
+
 
     public TermsView() {
         UI.getCurrent().getPage().setTitle("Twitter Collector Terms Management");
@@ -65,12 +67,17 @@ public class TermsView extends VerticalLayout implements View {
             edit.addStyleName("icon-only");
             servicesHeader.addComponent(edit);
             edit.setDescription("Add new Service");
+
             edit.addClickListener(new Button.ClickListener() {
                 @Override
+                @SuppressWarnings("unchecked")
                 public void buttonClick(Button.ClickEvent clickEvent) {
-                    // TODO Implement
+                    buildNewServiceWindow();
+                    getUI().addWindow(addServiceWindow);
+                    addServiceWindow.focus();
                 }
             });
+
             servicesHeader.setComponentAlignment(edit, Alignment.MIDDLE_LEFT);
         }
 
@@ -110,12 +117,16 @@ public class TermsView extends VerticalLayout implements View {
             editTerms.addStyleName("icon-only");
             dynamicHeader.addComponent(editTerms);
             editTerms.setDescription("Add new dynamic term");
+
             editTerms.addClickListener(new Button.ClickListener() {
                 @Override
                 public void buttonClick(Button.ClickEvent clickEvent) {
-                    // TODO Implement
+                    buildNewServiceExtrasWindow();
+                    getUI().addWindow(addServiceExtraWindow);
+                    addServiceExtraWindow.focus();
                 }
             });
+
             dynamicHeader.setComponentAlignment(editTerms, Alignment.MIDDLE_LEFT);
         }
 
@@ -146,19 +157,27 @@ public class TermsView extends VerticalLayout implements View {
                     c.getString("database.password"));
 
             final SQLContainer termsContainer = new SQLContainer(new TableQuery("search_terms", connPool));
-            final SQLContainer dynamicServicesContainer = new SQLContainer(new TableQuery("services", connPool));
+            dynamicServicesContainer = new SQLContainer(new TableQuery("services", connPool));
             final ActorRef searchTermsActor = Application.actorSystem().actorOf(Props.create(SearchTermsActor.class));
 
             servicesContainer = new SQLContainer(new TableQuery("services", connPool));
             servicesTable.setContainerDataSource(servicesContainer);
             servicesTable.addGeneratedColumn("Terms", new Table.ColumnGenerator() {
                 @Override
+                @SuppressWarnings("unchecked")
                 public Object generateCell(Table source, Object itemId, Object columnId) {
-                    final Object dynaId = source.getItem(itemId).getItemProperty("id").getValue();
-                    termsContainer.removeAllContainerFilters();
-                    termsContainer.addContainerFilter(new And(new Compare.Equal("container_id", dynaId), new Compare.Equal("term_type", "static"), new Compare.Equal("status", "active")));
+                    Object dynaId = source.getItem(itemId).getItemProperty("id").getValue();
 
-                    Collection<?> terms = termsContainer.getItemIds();
+                    Collection<?> terms;
+                    if (null == dynaId) {
+                        terms = Collections.emptySet();
+                    } else {
+                        termsContainer.removeAllContainerFilters();
+                        termsContainer.addContainerFilter(new And(new Compare.Equal("container_id", dynaId), new Compare.Equal("term_type", "static"), new Compare.Equal("status", "active")));
+
+                        terms = termsContainer.getItemIds();
+                    }
+
                     Set<Object> t = new HashSet<>();
                     for (Iterator<?> it = terms.iterator(); it.hasNext();) {
                         t.add(termsContainer.getItem(it.next()).getItemProperty("term").getValue());
@@ -167,6 +186,17 @@ public class TermsView extends VerticalLayout implements View {
                     SQLTokenField tokenField = new SQLTokenField(termsContainer, "static", dynaId, searchTermsActor);
                     tokenField.setRememberNewTokens(true);
                     tokenField.setValue(t);
+                    tokenField.addTokenChangedEventHandler(new SQLTokenField.TokenChangedEvent() {
+                        @Override
+                        public void tokenAdded(String token) {
+                            ((DashboardUI) getUI()).updateTermsBadgeCount();
+                        }
+
+                        @Override
+                        public void tokenRemoved(String token) {
+                            ((DashboardUI) getUI()).updateTermsBadgeCount();
+                        }
+                    });
 
                     return tokenField;
                 }
@@ -178,24 +208,39 @@ public class TermsView extends VerticalLayout implements View {
             dynamicTable.setContainerDataSource(dynamicContainer);
             dynamicTable.addGeneratedColumn("Service", new Table.ColumnGenerator() {
                 @Override
+                @SuppressWarnings("unchecked")
                 public Object generateCell(Table source, Object itemId, Object columnId) {
                     Object serviceId = source.getItem(itemId).getItemProperty("service_id").getValue();
-                    dynamicServicesContainer.removeAllContainerFilters();
-                    dynamicServicesContainer.addContainerFilter(new Compare.Equal("id", serviceId));
-                    Item i = dynamicServicesContainer.getItem(dynamicServicesContainer.firstItemId());
+                    if (null != serviceId) {
+                        dynamicServicesContainer.removeAllContainerFilters();
+                        dynamicServicesContainer.addContainerFilter(new Compare.Equal("id", serviceId));
+                        Item i = dynamicServicesContainer.getItem(dynamicServicesContainer.firstItemId());
 
-                    return i.getItemProperty("name").getValue();
+                        return i.getItemProperty("name").getValue();
+                    }
+                    else {
+                        return "";
+                    }
                 }
             });
             final SQLContainer dynamicTermsContainer = new SQLContainer(new TableQuery("search_terms", connPool));
             dynamicTable.addGeneratedColumn("Terms", new Table.ColumnGenerator() {
                 @Override
+                @SuppressWarnings("unchecked")
                 public Object generateCell(Table source, Object itemId, Object columnId) {
                     Object dynaId = source.getItem(itemId).getItemProperty("id").getValue();
-                    dynamicTermsContainer.removeAllContainerFilters();
-                    dynamicTermsContainer.addContainerFilter(new And(new Compare.Equal("container_id", dynaId), new Compare.Equal("term_type", "dynamic"), new Compare.Equal("status", "active")));
 
-                    Collection<?> terms = dynamicTermsContainer.getItemIds();
+                    Collection<?> terms;
+                    if (null == dynaId) {
+                        terms = Collections.emptySet();
+                    } else {
+
+                        dynamicTermsContainer.removeAllContainerFilters();
+                        dynamicTermsContainer.addContainerFilter(new And(new Compare.Equal("container_id", dynaId), new Compare.Equal("term_type", "dynamic"), new Compare.Equal("status", "active")));
+
+                        terms = dynamicTermsContainer.getItemIds();
+                    }
+
                     Set<Object> t = new HashSet<>();
                     for (Iterator<?> it = terms.iterator(); it.hasNext();) {
                         t.add(dynamicTermsContainer.getItem(it.next()).getItemProperty("term").getValue());
@@ -204,6 +249,17 @@ public class TermsView extends VerticalLayout implements View {
                     SQLTokenField tokenField = new SQLTokenField(termsContainer, "dynamic", dynaId, searchTermsActor);
                     tokenField.setRememberNewTokens(true);
                     tokenField.setValue(t);
+                    tokenField.addTokenChangedEventHandler(new SQLTokenField.TokenChangedEvent() {
+                        @Override
+                        public void tokenAdded(String token) {
+                            ((DashboardUI) getUI()).updateTermsBadgeCount();
+                        }
+
+                        @Override
+                        public void tokenRemoved(String token) {
+                            ((DashboardUI) getUI()).updateTermsBadgeCount();
+                        }
+                    });
 
                     return tokenField;
                 }
@@ -214,5 +270,149 @@ public class TermsView extends VerticalLayout implements View {
             servicesTable.setContainerDataSource(new IndexedContainer());
             dynamicTable.setContainerDataSource(new IndexedContainer());
         }
+    }
+
+    public void buildNewServiceWindow() {
+        addServiceWindow = new Window("Add New Service");
+        addServiceWindow.setModal(true);
+        addServiceWindow.setClosable(false);
+        addServiceWindow.setResizable(false);
+        addServiceWindow.addStyleName("edit-dashboard");
+
+        addServiceWindow.setContent(new VerticalLayout() {
+            TextField name = new TextField("Service name");
+            {
+                addComponent(new FormLayout() {
+                    {
+                        setSizeUndefined();
+                        setMargin(true);
+                        addComponent(name);
+                        name.focus();
+                        name.selectAll();
+                    }
+                });
+                addComponent(new HorizontalLayout() {
+                    {
+                        setMargin(true);
+                        setSpacing(true);
+                        addStyleName("footer");
+                        setWidth("100%");
+
+                        Button cancel = new Button("Cancel");
+                        cancel.addClickListener(new Button.ClickListener() {
+                            @Override
+                            public void buttonClick(Button.ClickEvent event) {
+                                addServiceWindow.close();
+                            }
+                        });
+                        cancel.setClickShortcut(ShortcutAction.KeyCode.ESCAPE, null);
+                        addComponent(cancel);
+                        setExpandRatio(cancel, 1);
+                        setComponentAlignment(cancel,
+                                Alignment.TOP_RIGHT);
+
+                        Button ok = new Button("Save");
+                        ok.addStyleName("wide");
+                        ok.addStyleName("default");
+                        ok.addClickListener(new Button.ClickListener() {
+                            @Override
+                            @SuppressWarnings("unchecked")
+                            public void buttonClick(Button.ClickEvent event) {
+                                try {
+                                    Object id = servicesContainer.addItem();
+                                    servicesContainer.getItem(id).getItemProperty("name").setValue(name.getValue());
+                                    servicesContainer.commit();
+                                } catch (SQLException e) {
+                                    logger.error(e.getMessage(), e);
+                                }
+                                addServiceWindow.close();
+                            }
+                        });
+                        ok.setClickShortcut(ShortcutAction.KeyCode.ENTER, null);
+                        addComponent(ok);
+                    }
+                });
+            }
+        });
+    }
+
+    public void buildNewServiceExtrasWindow() {
+        addServiceExtraWindow = new Window("Add New Dynamic Category");
+        addServiceExtraWindow.setModal(true);
+        addServiceExtraWindow.setClosable(false);
+        addServiceExtraWindow.setResizable(false);
+        addServiceExtraWindow.addStyleName("edit-dashboard");
+
+        addServiceExtraWindow.setContent(new VerticalLayout() {
+            TextField name = new TextField("Dynamic category name");
+            TextField channel = new TextField("Channel");
+            ComboBox services = new ComboBox("Service");
+            {
+                addComponent(new FormLayout() {
+                    {
+                        setSizeUndefined();
+                        setMargin(true);
+                        addComponent(name);
+                        name.focus();
+                        addComponent(channel);
+                        services.setInvalidAllowed(false);
+                        services.setNullSelectionAllowed(false);
+                        servicesContainer.removeAllContainerFilters();
+                        for(Object id : servicesContainer.getItemIds()) {
+                            services.addItem(servicesContainer.getItem(id).getItemProperty("name").getValue().toString());
+                        }
+                        addComponent(services);
+                    }
+                });
+                addComponent(new HorizontalLayout() {
+                    {
+                        setMargin(true);
+                        setSpacing(true);
+                        addStyleName("footer");
+                        setWidth("100%");
+
+                        Button cancel = new Button("Cancel");
+                        cancel.addClickListener(new Button.ClickListener() {
+                            @Override
+                            public void buttonClick(Button.ClickEvent event) {
+                                addServiceExtraWindow.close();
+                            }
+                        });
+                        cancel.setClickShortcut(ShortcutAction.KeyCode.ESCAPE, null);
+                        addComponent(cancel);
+                        setExpandRatio(cancel, 1);
+                        setComponentAlignment(cancel,
+                                Alignment.TOP_RIGHT);
+
+                        Button ok = new Button("Save");
+                        ok.addStyleName("wide");
+                        ok.addStyleName("default");
+                        ok.addClickListener(new Button.ClickListener() {
+                            @Override
+                            @SuppressWarnings("unchecked")
+                            public void buttonClick(Button.ClickEvent event) {
+                                try {
+                                    Object id = dynamicContainer.addItem();
+                                    dynamicContainer.getItem(id).getItemProperty("name").setValue(name.getValue());
+                                    dynamicContainer.getItem(id).getItemProperty("channel").setValue(channel.getValue());
+                                    dynamicContainer.getItem(id).getItemProperty("tx_datetime").setValue(new Date());
+                                    dynamicServicesContainer.removeAllContainerFilters();
+                                    Object value = services.getValue();
+                                    dynamicServicesContainer.addContainerFilter(new Compare.Equal("name", value));
+                                    Object serviceId = dynamicServicesContainer.firstItemId();
+                                    dynamicContainer.getItem(id).getItemProperty("service_id").setValue(Long.parseLong(serviceId.toString()));
+                                    dynamicContainer.commit();
+                                } catch (SQLException e) {
+                                    logger.error(e.getMessage(), e);
+                                }
+                                addServiceExtraWindow.close();
+                            }
+                        });
+                        ok.setClickShortcut(ShortcutAction.KeyCode.ENTER, null);
+                        addComponent(ok);
+                    }
+                });
+            }
+        });
     }
 }

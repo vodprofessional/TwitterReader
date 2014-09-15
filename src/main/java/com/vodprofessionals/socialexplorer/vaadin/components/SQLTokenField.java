@@ -12,6 +12,8 @@ import org.vaadin.tokenfield.TokenField;
 
 import java.sql.SQLException;
 import java.util.Date;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  *
@@ -22,6 +24,7 @@ public class SQLTokenField extends TokenField {
     String termType;
     Object containerId;
     ActorRef searchTermActor;
+    List<TokenChangedEvent> eventHandlers = new LinkedList<TokenChangedEvent>();
 
 
     public SQLTokenField(SQLContainer termsContainer, String termType, Object containerId, ActorRef searchTermActor) {
@@ -29,6 +32,10 @@ public class SQLTokenField extends TokenField {
         this.termType = termType;
         this.containerId = containerId;
         this.searchTermActor = searchTermActor;
+    }
+
+    public void addTokenChangedEventHandler(TokenChangedEvent event) {
+        eventHandlers.add(event);
     }
 
     @Override
@@ -39,13 +46,15 @@ public class SQLTokenField extends TokenField {
         termsContainer.getItem(id).getItemProperty("status").setValue("disabled");
         try {
             termsContainer.commit();
+            searchTermActor.tell(new SearchTermsActor.RemoveSearchTerm(tokenId.toString()), null);
+            this.removeToken(tokenId);
+
+            for (TokenChangedEvent event : eventHandlers) {
+                event.tokenRemoved(tokenId.toString());
+            }
         } catch (SQLException e) {
             logger.error("Failed to deactivate term '" + tokenId + "'", e);
         }
-
-        searchTermActor.tell(new SearchTermsActor.RemoveSearchTerm(tokenId.toString()), null);
-
-        this.removeToken(tokenId);
     }
 
     @Override
@@ -67,13 +76,21 @@ public class SQLTokenField extends TokenField {
         }
         try {
             termsContainer.commit();
+            searchTermActor.tell(new SearchTermsActor.AddSearchTerm(tokenId.toString()), null);
+            this.addToken(tokenId);
+
+            for (TokenChangedEvent event : eventHandlers) {
+                event.tokenAdded(tokenId.toString());
+            }
         } catch (SQLException e) {
             logger.error("Failed to activate term '" + tokenId + "'", e);
         }
-
-        searchTermActor.tell(new SearchTermsActor.AddSearchTerm(tokenId.toString()), null);
-
-        this.addToken(tokenId);
     }
 
+
+    public interface TokenChangedEvent {
+        public void tokenAdded(String token);
+
+        public void tokenRemoved(String token);
+    }
 }
