@@ -57,8 +57,11 @@ class TwitterCollectorActor ( val twitterCollector: TwitterCollector ) extends A
       }, discardOld = false)
 
     case RestartIfTermsDirty =>
-      SearchTerms.commitDirty
-      self ! StartTwitterCollector
+      if (SearchTerms.isDirty) {
+        logger.info("Restarted twitter collector due to dirty terms list")
+        SearchTerms.commitDirty
+        self ! StartTwitterCollector
+      }
   }
 
   /**
