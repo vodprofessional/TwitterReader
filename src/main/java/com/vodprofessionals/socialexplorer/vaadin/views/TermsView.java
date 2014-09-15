@@ -49,7 +49,7 @@ public class TermsView extends VerticalLayout implements View {
 
         // SERVICES HEADER
         HorizontalLayout servicesHeader = new HorizontalLayout();
-        servicesHeader.setWidth("100%");
+        servicesHeader.setWidth("99%");
         servicesHeader.setSpacing(true);
         servicesHeader.addStyleName("toolbar");
         addComponent(servicesHeader);
@@ -99,7 +99,7 @@ public class TermsView extends VerticalLayout implements View {
 
         // DYNAMIC HEADER
         HorizontalLayout dynamicHeader = new HorizontalLayout();
-        dynamicHeader.setWidth("100%");
+        dynamicHeader.setWidth("99%");
         dynamicHeader.setSpacing(true);
         dynamicHeader.addStyleName("toolbar");
         addComponent(dynamicHeader);

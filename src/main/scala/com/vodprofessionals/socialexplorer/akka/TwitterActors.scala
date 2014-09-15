@@ -55,6 +55,10 @@ class TwitterCollectorActor ( val twitterCollector: TwitterCollector ) extends A
           }
 
       }, discardOld = false)
+
+    case RestartIfTermsDirty =>
+      SearchTerms.commitDirty
+      self ! StartTwitterCollector
   }
 
   /**

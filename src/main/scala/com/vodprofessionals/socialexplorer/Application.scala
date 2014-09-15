@@ -85,16 +85,15 @@ object Application extends App with LazyLogging with Configurable {
         }
       )
 
+      val twitterCollectorActor = actorSystem.actorOf(Props(new TwitterCollectorActor(twitterCollector)))
       if(!terms.isEmpty) {
         SearchTerms.replaceTerms(terms)
         SearchTerms.commitDirty
-        actorSystem.actorOf(Props(new TwitterCollectorActor(twitterCollector))) ! TwitterCollectorActor.StartTwitterCollector
+        twitterCollectorActor ! TwitterCollectorActor.StartTwitterCollector
       }
       else
         logger.warn("No search terms defined so not starting collector")
     }
-
-    //logger.error("DRIVER: "+ContextAwareRDBMSDriver.driver);
 
     actorSystem.actorOf(Props(new SearchTermsActor()))
   } catch {
