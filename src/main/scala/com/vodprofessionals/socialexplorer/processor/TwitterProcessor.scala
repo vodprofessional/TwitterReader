@@ -32,8 +32,7 @@ class TwitterProcessor(
       val terms = SearchTerms.matchTerms(jsonMessage)
 
       if (terms.size > 0) {
-        for (term <- terms) yield storage(parseTweet(retweetedStatus.getOrElse(json), term), parseTweeter(json))
-
+        for (term <- terms) yield storage(parseTweet(retweetedStatus.getOrElse(json), term), parseTweeter(retweetedStatus.getOrElse(json)))
       }
   }
 
@@ -45,7 +44,10 @@ class TwitterProcessor(
    */
   def parseTweet(json: org.json4s.JValue, matchingTerm: String): Tweet =
     Tweet(
-      None,
+      { json \ "id" } match {
+        case JInt(s) => s.toLong
+        case _ => 0L
+      },
       { json \ "text" } match {
         case JString(s) => s
         case _ => ""
@@ -54,10 +56,6 @@ class TwitterProcessor(
       { json \ "created_at" } match {
         case JString(dateText:String) => dateFormat.parse(dateText)
         case _ => new Date(0L)
-      },
-      { json \ "id" } match {
-        case JInt(s) => s.toLong
-        case _ => 0L
       },
       { json \ "user" \ "id"} match {
         case JInt(s) => s.toLong

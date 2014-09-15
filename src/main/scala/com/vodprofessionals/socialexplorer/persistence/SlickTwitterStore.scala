@@ -33,31 +33,19 @@ class SlickTwitterStore (
   def insertTweet(tweet: Tweet) =
     DB withSession { implicit session: Session =>
       try {
-        if (tweet.retweets > 0)
-          session.withTransaction {
-            if (tweets.filter(_.tweetId === tweet.tweetId).length.run > 0) {
-              tweets.filter(_.tweetId === tweet.tweetId).update(tweet)
-              logger.info("Got One Existing Retweet") // TODO Not sure if it properly records the retweet
-            }
-            else
-              tweets += tweet
-          }
-        else
-          tweets += tweet
+        tweets.insertOrUpdate(tweet)
       } catch {
         case sqlException: java.sql.SQLException =>
           sqlException.getSQLState match {
             case Int(sqlStateCode) => sqlStateCode match {
               case 23000 => {
-                /* This is an integrity violation exception, just ignore it,
-                 most likely duplicate key
-                 http://www.pitt.edu/~hoffman/oradoc/server.804/a58231/appd.htm */
+                logger.error("Database Error (Integrity Violation): " + sqlException.getMessage)
               }
               case _ => logger.error("Database Error: " + sqlException.getMessage + " SQLSTATE: " + sqlStateCode)
             }
             case sqlStateCode: String => sqlException.getErrorCode match {
               case 1366 => {
-                //logger.warn("Cannot convert tweet text to MySQl UTF8")
+                logger.warn("Cannot convert tweet text to MySQL UTF8")
               }
               case _ => logger.error("Database Error: " + sqlException.getMessage + " ERRORCODE: " + sqlException.getErrorCode)
             }
@@ -75,15 +63,13 @@ class SlickTwitterStore (
   def insertTweeter(tweeter: Tweeter) =
     DB withSession { implicit session: Session =>
       try {
-        tweeters += tweeter
+        tweeters.insertOrUpdate(tweeter)
       } catch {
         case sqlException: java.sql.SQLException =>
           sqlException.getSQLState match {
             case Int(sqlStateCode) => sqlStateCode match {
               case code if 23000 == code => {
-                /* This is an integrity violation exception, just ignore it,
-                 most likely duplicate key
-                 http://www.pitt.edu/~hoffman/oradoc/server.804/a58231/appd.htm */
+                logger.error("Database Error (Integrity Violation): " + sqlException.getMessage)
               }
               case _ => logger.error("Database Error: " + sqlException.getMessage)
             }

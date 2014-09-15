@@ -1,5 +1,6 @@
 package com.vodprofessionals.socialexplorer.model
 
+import _root_.java.sql.Date
 import _root_.java.text.SimpleDateFormat
 import _root_.java.util.Calendar
 
@@ -77,9 +78,9 @@ class Reports(val dbProfile: JdbcProfile) extends SlickComponents with ContextAw
                                """
     }
 
-    val q = Q.query[String, (String, String, Long)](sql)
+    val q = Q.query[Date, (String, String, Long)](sql)
 
-    val r = q((new SimpleDateFormat("YYYY-MM-dd HH:mm:ss")).format(cal.getTime)).list
+    val r = q(new Date(cal.getTime.getTime)).list
 
     def proc( curr: Map[String, Map[String, Long]], item: (String, String, Long) ) = {
       curr + ( item._1 -> ( curr.getOrElse(item._1, Map.empty) + (item._2 -> item._3) ) )
