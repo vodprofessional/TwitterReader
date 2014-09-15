@@ -69,6 +69,7 @@ public class SQLTokenField extends TokenField {
             i.getItemProperty("term").setValue(tokenId);
             i.getItemProperty("term_type").setValue(termType);
             i.getItemProperty("container_id").setValue(containerId);
+            i.getItemProperty("createdAt").setValue(new Date());
             i.getItemProperty("status").setValue("active");
         } else {
             termsContainer.getItem(id).getItemProperty("createdAt").setValue(new Date());
