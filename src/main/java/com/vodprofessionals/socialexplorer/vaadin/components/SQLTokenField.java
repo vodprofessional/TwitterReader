@@ -18,6 +18,7 @@ import java.util.List;
 /**
  *
  */
+@SuppressWarnings("unchecked")
 public class SQLTokenField extends TokenField {
     Logger logger = LoggerFactory.getLogger(SQLTokenField.class);
     SQLContainer termsContainer;

@@ -34,59 +34,67 @@ object Application extends App with LazyLogging with Configurable {
     Logger.getLogger("global").setLevel(Level.FINEST);
 
     // Start the web service if needed
-    val port = Integer.parseInt(args.head)
 
-    if (port > 0)
-      actorSystem.actorOf(Props(new WebServerActor(new WebServer))) ! WebServerActor.StartWebServer(port)
+    try {
+      val port = Integer.parseInt(args.head)
+      if (port > 0)
+        actorSystem.actorOf(Props(new WebServerActor(new WebServer))) ! WebServerActor.StartWebServer(port)
+    } catch {
+      case ex: NumberFormatException => {}
+    }
 
-    // Attempt to create the Slick RDBMS twitter store
-    val slickStoreActor = actorSystem.actorOf(Props(new RDBMSTwitterStoreActor(new SlickTwitterStore())))
+    if (args.indexWhere(_ == "-worker") > 0) {
+      // Attempt to create the Slick RDBMS twitter store
+      val slickStoreActor = actorSystem.actorOf(Props(new RDBMSTwitterStoreActor(new SlickTwitterStore())))
 
-    // Attempt to boot up the Twitter processor actors
-    val actorPaths = for (i <- 1 to nrOfWorkers)
+      // Attempt to boot up the Twitter processor actors
+      val actorPaths = for (i <- 1 to nrOfWorkers)
       yield actorSystem.actorOf(Props(new TwitterProcessorActor(new TwitterProcessor(
           (tweet: Tweet, tweeter: Tweeter) => slickStoreActor ! RDBMSTwitterStoreActor.AddTwitterMessage(tweet, tweeter)
         )))).path.toString
 
-    val twitterProcessorActors = actorSystem.actorOf(RoundRobinGroup(actorPaths).props(), "twitterProcessorPool")
+      val twitterProcessorActors = actorSystem.actorOf(RoundRobinGroup(actorPaths).props(), "twitterProcessorPool")
 
 
-    // Let's load the search terms from the DB
-    class DAL(val dbProfile: JdbcProfile) extends SlickComponents with ContextAwareRDBMSProfile {
-      import dbProfile.simple._
+      // Let's load the search terms from the DB
+      class DAL(val dbProfile: JdbcProfile) extends SlickComponents with ContextAwareRDBMSProfile {
+        import dbProfile.simple._
 
-      DB withSession { implicit session: Session =>
-        createTables(session)
-      }
-
-      def getSearchTerms(): Set[String] =
         DB withSession { implicit session: Session =>
-          TableQuery[SearchTerms]
-            .filter(_.status === "active")
-            .groupBy(t => t.term)
-            .map{ case (term, group) => (term) }.run.toSet
+          createTables(session)
         }
-    }
-    val terms = (new DAL(ContextAwareRDBMSDriver.driver)).getSearchTerms
 
-    // Attempt to start a Twitter collector actor
-    val twitterCollector = new TwitterCollector(
-      CONFIG.getString("twitter.consumer.key"),
-      CONFIG.getString("twitter.consumer.secret"),
-      CONFIG.getString("twitter.token.key"),
-      CONFIG.getString("twitter.token.secret"),
-      (rawTweet: String) => {
-        twitterProcessorActors ! rawTweet; true
+        def getSearchTerms(): Set[String] =
+          DB withSession { implicit session: Session =>
+            TableQuery[SearchTerms]
+              .filter(_.status === "active")
+              .groupBy(t => t.term)
+              .map{ case (term, group) => (term) }.run.toSet
+          }
       }
-    )
+      val terms = (new DAL(ContextAwareRDBMSDriver.driver)).getSearchTerms
 
-    if(!terms.isEmpty) {
-      SearchTerms.replaceTerms(terms)
-      SearchTerms.commitDirty
-      actorSystem.actorOf(Props(new TwitterCollectorActor(twitterCollector))) ! TwitterCollectorActor.StartTwitterCollector
+      // Attempt to start a Twitter collector actor
+      val twitterCollector = new TwitterCollector(
+        CONFIG.getString("twitter.consumer.key"),
+        CONFIG.getString("twitter.consumer.secret"),
+        CONFIG.getString("twitter.token.key"),
+        CONFIG.getString("twitter.token.secret"),
+        (rawTweet: String) => {
+          twitterProcessorActors ! rawTweet; true
+        }
+      )
+
+      if(!terms.isEmpty) {
+        SearchTerms.replaceTerms(terms)
+        SearchTerms.commitDirty
+        actorSystem.actorOf(Props(new TwitterCollectorActor(twitterCollector))) ! TwitterCollectorActor.StartTwitterCollector
+      }
+      else
+        logger.warn("No search terms defined so not starting collector")
     }
-    else
-      logger.warn("No search terms defined so not starting collector")
+
+    //logger.error("DRIVER: "+ContextAwareRDBMSDriver.driver);
 
     actorSystem.actorOf(Props(new SearchTermsActor()))
   } catch {

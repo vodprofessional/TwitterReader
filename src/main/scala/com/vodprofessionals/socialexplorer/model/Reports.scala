@@ -4,7 +4,7 @@ import _root_.java.text.SimpleDateFormat
 import _root_.java.util.Calendar
 
 import com.typesafe.scalalogging.LazyLogging
-import com.vodprofessionals.socialexplorer.persistence.{ContextAwareRDBMSProfile, SlickComponents}
+import com.vodprofessionals.socialexplorer.persistence.{ContextAwareRDBMSDriver, ContextAwareRDBMSProfile, SlickComponents}
 
 import scala.slick.driver.JdbcProfile
 import scala.slick.jdbc.{StaticQuery => Q}
@@ -26,24 +26,58 @@ class Reports(val dbProfile: JdbcProfile) extends SlickComponents with ContextAw
     val today = cal.clone.asInstanceOf[Calendar]
     cal.add(pieces, amount)
 
-    val q = Q.query[String, (String, String, Long)](
-    """
-      SELECT
-        term,
-        CONCAT(DATE(tweetedAt), " ", EXTRACT(HOUR FROM tweetedAt) DIV 6) sixhourgroup,
-        COUNT(id)
-      FROM
-        tweets
-      WHERE
-        tweetedAt > ?
-      GROUP BY
-        sixhourgroup,
-        term
-      ORDER BY
-        sixhourgroup,
-        term;
-    """
-    )
+    val sql = ContextAwareRDBMSDriver.driver.toString match {
+      case "MySQLDriver" =>    """
+                                SELECT
+                                  term,
+                                  CONCAT(DATE(tweetedAt), " ", EXTRACT(HOUR FROM tweetedAt) DIV 6) sixhourgroup,
+                                  COUNT(id)
+                                FROM
+                                  tweets
+                                WHERE
+                                  tweetedAt > ?
+                                GROUP BY
+                                  sixhourgroup,
+                                  term
+                                ORDER BY
+                                  sixhourgroup,
+                                  term;
+                               """
+      case "PostgresDriver" => """
+                                SELECT
+                                  term,
+                                  CONCAT(DATE("tweetedAt"), ' ', EXTRACT(HOUR FROM "tweetedAt") / 6) sixhourgroup,
+                                  COUNT(id)
+                                FROM
+                                  tweets
+                                WHERE
+                                  "tweetedAt" > ?
+                                GROUP BY
+                                  sixhourgroup,
+                                  term
+                                ORDER BY
+                                  sixhourgroup,
+                                  term;
+                               """
+      case _ =>                """
+                                SELECT
+                                  "Not Supported",
+                                  "" sixhourgroup,
+                                  COUNT(id)
+                                FROM
+                                  tweets
+                                WHERE
+                                  "tweetedAt" > ?
+                                GROUP BY
+                                  sixhourgroup,
+                                  term
+                                ORDER BY
+                                  sixhourgroup,
+                                  term;
+                               """
+    }
+
+    val q = Q.query[String, (String, String, Long)](sql)
 
     val r = q((new SimpleDateFormat("YYYY-MM-dd HH:mm:ss")).format(cal.getTime)).list
 
