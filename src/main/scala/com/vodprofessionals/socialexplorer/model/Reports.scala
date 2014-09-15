@@ -47,7 +47,7 @@ class Reports(val dbProfile: JdbcProfile) extends SlickComponents with ContextAw
       case "PostgresDriver" => """
                                 SELECT
                                   term,
-                                  CONCAT(DATE("tweetedAt"), ' ', EXTRACT(HOUR FROM "tweetedAt") / 6) sixhourgroup,
+                                  CONCAT(DATE("tweetedAt"), ' ', ROUND(EXTRACT(HOUR FROM "tweetedAt") / 6)) sixhourgroup,
                                   COUNT(id)
                                 FROM
                                   tweets
