@@ -44,10 +44,10 @@ trait SlickComponents { this: ContextAwareRDBMSProfile =>
     def tweeterId = column[Long]("tweeter_id", O.NotNull)
     def retweets = column[Long]("retweets", O.NotNull)
     def favorites = column[Long]("favorites", O.NotNull)
-    def replyToId = column[Long]("reply_to_id", O.Nullable)
-    def * = (id, text, term, tweetedAt, tweeterId, retweets, favorites, replyToId.?) <> (Tweet.tupled, Tweet.unapply)
+    def replyToId = column[Option[Long]]("reply_to_id", O.Nullable)
+    def * = (id, text, term, tweetedAt, tweeterId, retweets, favorites, replyToId) <> (Tweet.tupled, Tweet.unapply)
     def tweeter = foreignKey("tweeter_id", tweeterId, TableQuery[Tweeters])(_.id)
-    def ins = (id, text, term, tweetedAt, tweeterId, retweets, favorites, replyToId.?)
+    def ins = (id, text, term, tweetedAt, tweeterId, retweets, favorites, replyToId)
   }
 
   class Tweeters(tag: Tag) extends Table[Tweeter](tag, "tweeters") {
