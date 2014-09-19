@@ -39,11 +39,9 @@
       height: $popupdatefield-big-height;
       width: 32px;
       background-image: url(../img/date-btn-big.png);
-      font-size: $chameleon-font-size-big;
     }
     input.#{$primaryStyleName}-textfield[type="text"] {
       height: $popupdatefield-big-height;
-      font-size: $chameleon-font-size-big;
     }
   }
 
@@ -56,11 +54,9 @@
       height: $popupdatefield-small-height;
       width: 19px;
       background-position: 50% -2px;
-      font-size: $chameleon-font-size-small;
     }
     input.#{$primaryStyleName}-textfield[type="text"] {
       height: $popupdatefield-small-height;
-      font-size: $chameleon-font-size-small;
     }
 
   }

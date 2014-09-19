@@ -5609,24 +5609,20 @@ body .dashboard.v-app .v-app-loading {
 	height: 1.9em;
 	width: 32px;
 	background-image: url(img/date-btn-big.png);
-	font-size: $chameleon-font-size-big;
 }
 
 .dashboard .v-datefield-big input.v-datefield-textfield[type="text"] {
 	height: 1.9em;
-	font-size: $chameleon-font-size-big;
 }
 
 .dashboard .v-datefield-small .v-datefield-button {
 	height: 1.6em;
 	width: 19px;
 	background-position: 50% -2px;
-	font-size: $chameleon-font-size-small;
 }
 
 .dashboard .v-datefield-small input.v-datefield-textfield[type="text"] {
 	height: 1.6em;
-	font-size: $chameleon-font-size-small;
 }
 
 .dashboard .v-datefield-calendarpanel {
@@ -6239,7 +6235,7 @@ body .dashboard.v-app .v-app-loading {
 	background-color: rgba(40, 40, 40, 0.85);
 	text-shadow: 0 1px 1px rgba(0, 0, 0, 0.5);
 	color: #a6a9aa;
-	font: $font;
+	font: "Open Sans", Arial, sans-serif;
 	font-size: 12px;
 	-webkit-animation: fade-in 160ms ease-out;
 	-moz-animation: fade-in 160ms ease-out;
