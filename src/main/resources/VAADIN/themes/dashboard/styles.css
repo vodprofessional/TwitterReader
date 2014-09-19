@@ -5578,6 +5578,260 @@ body .dashboard.v-app .v-app-loading {
 	border-top: 1px solid #d4d5d5;
 }
 
+.dashboard .v-widget.tokenfield .v-csslayout .v-button-link {
+	height: 30px;
+}
+
+.dashboard .v-datefield-button {
+	background: #dadada url(img/date-btn-big2.png) repeat-x 50% 0;
+	border: 1px solid #c9c8c7;
+	-webkit-border-top-right-radius: 3px;
+	-webkit-border-bottom-right-radius: 3px;
+	-moz-border-radius-topright: 3px;
+	-moz-border-radius-bottomright: 3px;
+	width: 25px;
+	margin-right: -25px;
+	height: 31px;
+	padding: 0.2em 0;
+}
+
+.dashboard input.v-datefield-textfield[type="text"] {
+	border-right: none;
+	-webkit-border-top-right-radius: 3px;
+	-webkit-border-bottom-right-radius: 3px;
+	-moz-border-radius-topright: 3px;
+	-moz-border-radius-bottomright: 3px;
+	height: 31px;
+}
+
+.dashboard .v-datefield-big .v-datefield-button {
+	padding: 0.3em 0;
+	height: 1.9em;
+	width: 32px;
+	background-image: url(img/date-btn-big.png);
+	font-size: $chameleon-font-size-big;
+}
+
+.dashboard .v-datefield-big input.v-datefield-textfield[type="text"] {
+	height: 1.9em;
+	font-size: $chameleon-font-size-big;
+}
+
+.dashboard .v-datefield-small .v-datefield-button {
+	height: 1.6em;
+	width: 19px;
+	background-position: 50% -2px;
+	font-size: $chameleon-font-size-small;
+}
+
+.dashboard .v-datefield-small input.v-datefield-textfield[type="text"] {
+	height: 1.6em;
+	font-size: $chameleon-font-size-small;
+}
+
+.dashboard .v-datefield-calendarpanel {
+	border-collapse: collapse;
+	margin: 0;
+	padding: 0;
+	height: auto !important;
+	font-size: 11.7px;
+}
+
+.dashboard .v-datefield-month .v-datefield-textfield {
+	width: 6.4em;
+}
+
+.dashboard .v-datefield-year .v-datefield-textfield {
+	width: 4.4em;
+}
+
+.dashboard .v-datefield-year .v-datefield-calendarpanel-prevmonth, .dashboard .v-datefield-year .v-datefield-calendarpanel-nextmonth {
+	display: none;
+}
+
+.dashboard .v-datefield-calendarpanel-header td {
+	border-bottom: 1px solid #666;
+}
+
+.dashboard .v-datefield-year .v-datefield-calendarpanel-header td, .dashboard .v-datefield-month .v-datefield-calendarpanel-header td {
+	border-bottom: none;
+}
+
+.dashboard td.v-datefield-calendarpanel-month {
+	background: #c9c9c9 url(img/grad-light-top.png) repeat-x 0 -1px;
+	text-shadow: 0 1px 0 rgba(255, 255, 255, 0.7);
+	color: #555;
+}
+
+.dashboard span.v-datefield-calendarpanel-month {
+	display: block;
+	text-align: center;
+	overflow: hidden;
+	line-height: 2em;
+	height: 1.8em;
+}
+
+.dashboard .v-datefield-year .v-datefield-calendarpanel-month {
+	width: 5.4em;
+}
+
+.dashboard .v-datefield-month .v-datefield-calendarpanel-month, .dashboard .v-datefield-day .v-datefield-calendarpanel-month, .dashboard .v-datefield-full .v-datefield-calendarpanel-month {
+	width: 9.4em;
+}
+
+.dashboard .v-datefield-popupcalendar {
+	min-width: 0;
+	padding-right: 25px;
+}
+
+.dashboard .v-datefield-year .v-datefield-calendarpanel {
+	width: 8.4em;
+}
+
+.dashboard td.v-datefield-calendarpanel-prevyear {
+	text-align: right;
+}
+
+.dashboard td.v-datefield-calendarpanel-nextyear {
+	text-align: left;
+}
+
+.dashboard .v-datefield-calendarpanel-header button {
+	font-size: 13px;
+	line-height: normal;
+	width: 100%;
+	padding: 0 0.8em;
+	height: 1.8em;
+	border: none;
+	background: #c9c9c9 url(img/grad-light-top.png) repeat-x 0 -1px;
+	overflow: hidden;
+	outline: none;
+	cursor: pointer;
+}
+
+.dashboard .v-datefield-popup .v-datefield-calendarpanel-month, .dashboard .v-datefield-popup .v-datefield-calendarpanel-header button {
+	background-position: 0 0;
+}
+
+.dashboard .v-datefield-calendarpanel-header button:active {
+	background-image: url(img/grad-dark-top2.png);
+}
+
+.dashboard .v-datefield-calendarpanel-prevyear button {
+	-webkit-border-top-left-radius: 4px;
+	-moz-border-radius-topleft: 4px;
+}
+
+.dashboard .v-datefield-calendarpanel-nextyear button {
+	-webkit-border-top-right-radius: 4px;
+	-moz-border-radius-topright: 4px;
+}
+
+.dashboard .v-datefield-year .v-datefield-calendarpanel-prevyear button, .dashboard .v-datefield-month .v-datefield-calendarpanel-prevyear button {
+	-webkit-border-bottom-left-radius: 3px;
+	-moz-border-radius-bottomleft: 3px;
+}
+
+.dashboard .v-datefield-year .v-datefield-calendarpanel-nextyear button, .dashboard .v-datefield-month .v-datefield-calendarpanel-nextyear button {
+	-webkit-border-bottom-right-radius: 3px;
+	-moz-border-radius-bottomright: 3px;
+}
+
+.dashboard .v-datefield-calendarpanel-body, .dashboard .v-datefield-calendarpanel-time {
+	text-align: center;
+	vertical-align: top;
+}
+
+.dashboard .v-datefield-calendarpanel-body table {
+	border-collapse: collapse;
+	margin: 0;
+	padding: 0;
+	margin: 0 auto;
+}
+
+.dashboard .v-datefield-calendarpanel-weekdays td {
+	width: 14.2%;
+	overflow: hidden;
+	line-height: normal;
+	text-transform: uppercase;
+	vertical-align: top;
+}
+
+.dashboard .v-datefield-calendarpanel-weeknumbers td {
+	width: 12.5%;
+}
+
+.dashboard .v-datefield-calendarpanel-weekdays strong {
+	display: block;
+	text-align: right;
+	font-size: 10.4px;
+	padding: 0.3em 0.5em 0.35em 0;
+	height: 1.1em;
+	color: #fff;
+	text-shadow: 0 1px 0 rgba(0, 0, 0, 0.5);
+	background: #c9c9c9 url(img/grad-dark-top2.png) repeat-x;
+	margin-bottom: 2px;
+}
+
+.dashboard .v-datefield-calendarpanel .v-first strong {
+	-webkit-border-bottom-left-radius: 3px;
+	-moz-border-radius-bottomleft: 3px;
+}
+
+.dashboard .v-datefield-calendarpanel .v-last strong {
+	-webkit-border-bottom-right-radius: 3px;
+	-moz-border-radius-bottomright: 3px;
+}
+
+.dashboard .v-datefield-popup .v-datefield-calendarpanel .v-first strong, .dashboard .v-datefield-popup .v-datefield-calendarpanel .v-last strong {
+	-webkit-border-radius: 0;
+	-moz-border-radius: 0;
+}
+
+.dashboard .v-datefield-calendarpanel-body td {
+	text-align: right;
+	height: 1.6em;
+}
+
+.dashboard .v-datefield-calendarpanel-weeknumber {
+	padding: 0.5em 0.5em 0.35em 0;
+	font-size: 11.7px;
+}
+
+.dashboard .v-datefield-calendarpanel-day, .dashboard .v-datefield-calendarpanel-day-today {
+	padding: 0.15em 0.5em 0.15em 0;
+	display: block;
+	margin: 1px 1px 1px 0.3em;
+	border-radius: 2px;
+	-webkit-border-radius: 2px;
+	-moz-border-radius: 2px;
+}
+
+.dashboard .v-datefield-calendarpanel-day-focused, .dashboard .v-datefield-calendarpanel-day:hover {
+	margin: 0 0 0 0.2em;
+	border: 1px solid #b3b3b3;
+	outline: none;
+}
+
+.dashboard .v-datefield-calendarpanel-day-today {
+	border: none;
+	background: transparent url(img/grad-dark-top2.png) repeat-x;
+	margin: 0 0 0 0.2em;
+	font-weight: bold;
+	border: 1px solid #c9c9c9;
+}
+
+.dashboard .v-datefield-calendarpanel-day-selected, .dashboard .v-datefield-calendarpanel-day-selected:hover {
+	margin: 0 0 0 0.3em;
+	border: none;
+}
+
+.dashboard .v-datefield-calendarpanel-time select {
+	padding: 0;
+	font-size: 11.7px;
+	margin: 0;
+}
+
 .dashboard .v-view {
 	overflow: hidden;
 }

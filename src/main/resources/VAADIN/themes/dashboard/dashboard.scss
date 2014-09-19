@@ -15,7 +15,9 @@
 /* TODO move new notification theme to base as the default when they are ready */
 @import "components/notification.scss";
 @import "components/button.scss";
+@import "components/datefield.scss";
 @import "components/textfield.scss";
+@import "components/tokenfield.scss";
 @import "components/combobox.scss";
 @import "components/tabsheet.scss";
 @import "components/label.scss";
@@ -48,6 +50,10 @@
 	@include dashboard-sales-view;
 	@include dashboard-reports-view;
 	@include dashboard-transactions-view;
+
+    @include dashboard-tokenfield;
+
+    @include dashboard-datefield;
 
 
 	.v-view {

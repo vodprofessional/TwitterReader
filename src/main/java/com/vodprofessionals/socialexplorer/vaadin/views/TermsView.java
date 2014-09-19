@@ -6,6 +6,7 @@ import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import com.vaadin.data.Item;
 import com.vaadin.data.util.IndexedContainer;
+import com.vaadin.data.util.converter.StringToDateConverter;
 import com.vaadin.data.util.filter.And;
 import com.vaadin.data.util.filter.Compare;
 import com.vaadin.data.util.sqlcontainer.SQLContainer;
@@ -22,8 +23,11 @@ import com.vodprofessionals.socialexplorer.vaadin.components.SQLTokenField;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.SQLException;
+import java.sql.*;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.Date;
 
 
 /**
@@ -223,6 +227,11 @@ public class TermsView extends VerticalLayout implements View {
                     }
                 }
             });
+            dynamicTable.setConverter("tx_datetime", new StringToDateConverter() {
+                protected DateFormat getFormat(Locale locale) {
+                    return new SimpleDateFormat("EEE, d MMMMM yyyy HH:mm:ss", locale);
+                }
+            });
             final SQLContainer dynamicTermsContainer = new SQLContainer(new TableQuery("search_terms", connPool));
             dynamicTable.addGeneratedColumn("Terms", new Table.ColumnGenerator() {
                 @Override
@@ -345,6 +354,7 @@ public class TermsView extends VerticalLayout implements View {
 
         addServiceExtraWindow.setContent(new VerticalLayout() {
             TextField name = new TextField("Dynamic category name");
+            DateField txDateTime = new DateField("TX Datetime");
             TextField channel = new TextField("Channel");
             ComboBox services = new ComboBox("Service");
             {
@@ -354,6 +364,9 @@ public class TermsView extends VerticalLayout implements View {
                         setMargin(true);
                         addComponent(name);
                         name.focus();
+                        txDateTime.setResolution(DateField.RESOLUTION_SEC);
+                        txDateTime.setDateFormat("yyyy-MM-dd HH:mm:ss");
+                        addComponent(txDateTime);
                         addComponent(channel);
                         services.setInvalidAllowed(false);
                         services.setNullSelectionAllowed(false);
@@ -394,8 +407,8 @@ public class TermsView extends VerticalLayout implements View {
                                 try {
                                     Object id = dynamicContainer.addItem();
                                     dynamicContainer.getItem(id).getItemProperty("name").setValue(name.getValue());
+                                    dynamicContainer.getItem(id).getItemProperty("tx_datetime").setValue(txDateTime.getValue());
                                     dynamicContainer.getItem(id).getItemProperty("channel").setValue(channel.getValue());
-                                    dynamicContainer.getItem(id).getItemProperty("tx_datetime").setValue(new Date());
                                     dynamicServicesContainer.removeAllContainerFilters();
                                     Object value = services.getValue();
                                     dynamicServicesContainer.addContainerFilter(new Compare.Equal("name", value));
