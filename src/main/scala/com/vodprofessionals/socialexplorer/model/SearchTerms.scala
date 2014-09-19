@@ -83,7 +83,15 @@ object SearchTerms extends Configurable with LazyLogging {
    */
   def getActiveTerms = terms
 
-  def getTermsCount = math.max(terms.size, dirtyTerms.size)
+  /**
+   *
+   * @return
+   */
+  def getTermsCount =
+    if (isDirty)
+      dirtyTerms.size
+    else
+      terms.size
 
   /**
    * Reset the terms list and replace it with the new list of terms

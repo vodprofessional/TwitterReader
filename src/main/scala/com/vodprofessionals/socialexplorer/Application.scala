@@ -43,6 +43,28 @@ object Application extends App with LazyLogging with Configurable {
       case ex: NumberFormatException => {}
     }
 
+    // Let's load the search terms from the DB
+    class DAL(val dbProfile: JdbcProfile) extends SlickComponents with ContextAwareRDBMSProfile {
+      import dbProfile.simple._
+
+      DB withSession { implicit session: Session =>
+        createTables(session)
+      }
+
+      def getSearchTerms(): Set[String] =
+        DB withSession { implicit session: Session =>
+          TableQuery[SearchTerms]
+            .filter(_.status === "active")
+            .groupBy(t => t.term)
+            .map{ case (term, group) => (term) }.run.toSet
+        }
+    }
+    val terms = (new DAL(ContextAwareRDBMSDriver.driver)).getSearchTerms
+    if (!terms.isEmpty) {
+      SearchTerms.replaceTerms(terms)
+      SearchTerms.commitDirty
+    }
+
     if (args.indexWhere(_ == "-worker") > 0) {
       // Attempt to create the Slick RDBMS twitter store
       val slickStoreActor = actorSystem.actorOf(Props(new RDBMSTwitterStoreActor(new SlickTwitterStore())))
@@ -54,25 +76,6 @@ object Application extends App with LazyLogging with Configurable {
         )))).path.toString
 
       val twitterProcessorActors = actorSystem.actorOf(RoundRobinGroup(actorPaths).props(), "twitterProcessorPool")
-
-
-      // Let's load the search terms from the DB
-      class DAL(val dbProfile: JdbcProfile) extends SlickComponents with ContextAwareRDBMSProfile {
-        import dbProfile.simple._
-
-        DB withSession { implicit session: Session =>
-          createTables(session)
-        }
-
-        def getSearchTerms(): Set[String] =
-          DB withSession { implicit session: Session =>
-            TableQuery[SearchTerms]
-              .filter(_.status === "active")
-              .groupBy(t => t.term)
-              .map{ case (term, group) => (term) }.run.toSet
-          }
-      }
-      val terms = (new DAL(ContextAwareRDBMSDriver.driver)).getSearchTerms
 
       // Attempt to start a Twitter collector actor
       val twitterCollector = new TwitterCollector(
@@ -87,8 +90,6 @@ object Application extends App with LazyLogging with Configurable {
 
       val twitterCollectorActor = actorSystem.actorOf(Props(new TwitterCollectorActor(twitterCollector)))
       if(!terms.isEmpty) {
-        SearchTerms.replaceTerms(terms)
-        SearchTerms.commitDirty
         twitterCollectorActor ! TwitterCollectorActor.StartTwitterCollector
       }
       else

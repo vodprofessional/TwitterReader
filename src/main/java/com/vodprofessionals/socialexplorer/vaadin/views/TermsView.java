@@ -22,6 +22,7 @@ import com.vodprofessionals.socialexplorer.vaadin.DashboardUI;
 import com.vodprofessionals.socialexplorer.vaadin.components.SQLTokenField;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.vaadin.tokenfield.TokenField;
 
 import java.sql.*;
 import java.text.DateFormat;
@@ -38,10 +39,12 @@ public class TermsView extends VerticalLayout implements View {
     SQLContainer servicesContainer;
     SQLContainer dynamicContainer;
     SQLContainer dynamicServicesContainer;
+    SQLContainer termsContainer;
     Table servicesTable = new Table();
     Table dynamicTable = new Table();
     Window addServiceWindow;
     Window addServiceExtraWindow;
+    final ActorRef searchTermsActor = Application.actorSystem().actorOf(Props.create(SearchTermsActor.class));
 
 
     public TermsView() {
@@ -160,9 +163,8 @@ public class TermsView extends VerticalLayout implements View {
                     c.getString("database.username"),
                     c.getString("database.password"));
 
-            final SQLContainer termsContainer = new SQLContainer(new TableQuery("search_terms", connPool));
+            termsContainer = new SQLContainer(new TableQuery("search_terms", connPool));
             dynamicServicesContainer = new SQLContainer(new TableQuery("services", connPool));
-            final ActorRef searchTermsActor = Application.actorSystem().actorOf(Props.create(SearchTermsActor.class));
 
             servicesContainer = new SQLContainer(new TableQuery("services", connPool));
             servicesTable.setContainerDataSource(servicesContainer);
@@ -357,6 +359,7 @@ public class TermsView extends VerticalLayout implements View {
             DateField txDateTime = new DateField("TX Datetime");
             TextField channel = new TextField("Channel");
             ComboBox services = new ComboBox("Service");
+            TokenField tokenField = new TokenField("Terms");
             {
                 addComponent(new FormLayout() {
                     {
@@ -375,6 +378,7 @@ public class TermsView extends VerticalLayout implements View {
                             services.addItem(servicesContainer.getItem(id).getItemProperty("name").getValue().toString());
                         }
                         addComponent(services);
+                        addComponent(tokenField);
                     }
                 });
                 addComponent(new HorizontalLayout() {
@@ -415,6 +419,38 @@ public class TermsView extends VerticalLayout implements View {
                                     Object serviceId = dynamicServicesContainer.firstItemId();
                                     dynamicContainer.getItem(id).getItemProperty("service_id").setValue(Long.parseLong(serviceId.toString()));
                                     dynamicContainer.commit();
+
+                                    // Add the tokens
+                                    Collection<String> tokens = (Collection<String>) tokenField.getValue();
+                                    Long dcid = (Long) dynamicContainer.getItem(dynamicContainer.lastItemId()).getItemProperty("id").getValue();
+
+                                    for(String token: tokens) {
+                                        termsContainer.removeAllContainerFilters();
+                                        termsContainer.addContainerFilter(new And(new Compare.Equal("container_id", id), new Compare.Equal("term_type", "dynamic"), new Compare.Equal("term", token)));
+                                        Object tid = termsContainer.firstItemId();
+                                        termsContainer.removeAllContainerFilters();
+                                        if (null == tid) {
+                                            tid = termsContainer.addItem();
+                                            Item i = termsContainer.getItem(tid);
+                                            i.getItemProperty("term").setValue(token);
+                                            i.getItemProperty("term_type").setValue("dynamic");
+                                            i.getItemProperty("container_id").setValue(dcid);
+                                            i.getItemProperty("createdAt").setValue(new Date());
+                                            i.getItemProperty("status").setValue("active");
+                                        } else {
+                                            termsContainer.getItem(tid).getItemProperty("createdAt").setValue(new Date());
+                                            termsContainer.getItem(tid).getItemProperty("status").setValue("active");
+                                        }
+                                        try {
+                                            termsContainer.commit();
+                                            searchTermsActor.tell(new SearchTermsActor.AddSearchTerm(token), null);
+                                        } catch (SQLException e) {
+                                            logger.error("Failed to activate term '" + token + "'", e);
+                                        }
+                                    }
+                                    dynamicTable.refreshRowCache();
+                                    ((DashboardUI) getUI()).updateTermsBadgeCount();
+
                                 } catch (SQLException e) {
                                     logger.error(e.getMessage(), e);
                                 }
